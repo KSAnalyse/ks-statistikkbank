@@ -8,8 +8,8 @@
         <outputRelativeToContentRoot value="true" />
         <module name="scheduler" />
         <module name="database-service" />
-        <module name="data-innhenting-ssb" />
-        <module name="klass-innhenting-ssb" />
+        <module name="innhenting-ssb-klass" />
+        <module name="innhenting-ssb-data" />
       </profile>
     </annotationProcessing>
   </component>

@@ -1,4 +1,4 @@
-package no.ks.fiks;
+package no.ks.fiks.database.service;
 
 /**
  * Hello world!
