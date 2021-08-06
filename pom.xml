@@ -15,9 +15,18 @@
         <module>innhenting-ssb-klass</module>
     </modules>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit-jupiter.version}</version>
+        </dependency>
+    </dependencies>
+
     <properties>
         <maven.compiler.source>15</maven.compiler.source>
         <maven.compiler.target>15</maven.compiler.target>
+        <junit-jupiter.version>5.7.2</junit-jupiter.version>
     </properties>
 
 </project>
