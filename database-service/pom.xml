@@ -21,7 +21,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>15</maven.compiler.source>
     <maven.compiler.target>15</maven.compiler.target>
-    <spring.boot.version>2.5.3</spring.boot.version>
     <microsoft.sqlserver.version>9.2.1.jre15</microsoft.sqlserver.version>
   </properties>
 
