@@ -5,9 +5,10 @@ import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.sql.SQLException;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class DatabaseService {
 
@@ -21,6 +22,56 @@ public class DatabaseService {
         createPattern = Pattern.compile(tablePattern);
         return createPattern.matcher(sqlString);
 
+    }
+    //create table (Regionkode varchar(255), Statistikkvariabelkode varchar(255))
+    public List<String> splitSqlStatment(String sqlStatement) {
+        List<String> sql = Arrays.asList(sqlStatement.split(""));
+        sql = sql.stream().filter(item -> !item.isEmpty()).collect(Collectors.toList());
+        sql.forEach(System.out::println);
+        return sql;
+    }
+
+    private String checkSqlStatement(String sqlStatement) {
+        List<String> splitSqlStatement = splitSqlStatment(sqlStatement);
+        switch (splitSqlStatement.get(0).toLowerCase()) {
+            case "create":
+                checkCreateStatement(splitSqlStatement);
+            case "drop":
+                checkDropStatement(splitSqlStatement);
+            case "truncate":
+                checkTruncateStatement(splitSqlStatement);
+            case "insert":
+                checkInsertStatement(splitSqlStatement);
+            case "delete":
+                checkDeleteStatement(splitSqlStatement);
+            case "update":
+                checkUpdateStatement(splitSqlStatement);
+        }
+        return null;
+    }
+
+    private boolean checkCreateStatement(List<String> splitSqlStatement) {
+        return false;
+    }
+
+    private boolean checkDropStatement(List<String> splitSqlStatement) {
+        return false;
+    }
+
+    private boolean checkTruncateStatement(List<String> splitSqlStatement) {
+        return false;
+    }
+
+    private boolean checkInsertStatement(List<String> splitSqlStatement) {
+        return false;
+    }
+
+    private boolean checkDeleteStatement(List<String> splitSqlStatement) {
+        return false;
+    }
+
+    private boolean checkUpdateStatement(List<String> splitSqlStatement) {
+        return false;
     }
 
     public String createTable(JdbcTemplate jdbcTemplate, String createString) {
