@@ -1,2 +1,2 @@
 /database-service/src/main/resources/application.properties
-database-service/src/main/java/no/ks/fiks/database/service/api/v1/DatabaseService.java
+/database-service/target/
