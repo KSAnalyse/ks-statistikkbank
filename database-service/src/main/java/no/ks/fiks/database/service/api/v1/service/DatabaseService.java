@@ -106,9 +106,9 @@ public class DatabaseService {
     }
 
 
-    /** Runs the SQL statement
+    /** Runs the SQL query
      *
-     * Tries to run the statement provided and returns an error if an exception occurs
+     * Tries to run the query provided and returns an error if an exception occurs
      *
      * @param jdbcTemplate
      * @param query the query provided
