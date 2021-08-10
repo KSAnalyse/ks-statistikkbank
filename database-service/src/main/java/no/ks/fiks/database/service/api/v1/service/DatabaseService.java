@@ -1,6 +1,7 @@
 package no.ks.fiks.database.service.api.v1.service;
 
 import com.microsoft.sqlserver.jdbc.SQLServerException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -102,5 +103,30 @@ public class DatabaseService {
         }
 
         return "Table dropped";
+    }
+
+
+    /** Runs the SQL statement
+     *
+     * Tries to run the statement provided and returns an error if an exception occurs
+     *
+     * @param jdbcTemplate
+     * @param query the query provided
+     * @return an error message if something went wrong, else "OK"
+     */
+    public String runSqlStatement(JdbcTemplate jdbcTemplate, String query) {
+        int errorCode;
+
+        try {
+            jdbcTemplate.execute(query);
+        } catch (DataAccessException e) {
+            SQLException se = (SQLException) e.getRootCause();
+            errorCode = se.getErrorCode();
+
+            return "SqlException. Errorcode: " + errorCode + ". " + se.getMessage();
+        } catch (Exception e) {
+            return e.getClass().getName();
+        }
+        return "OK";
     }
 }

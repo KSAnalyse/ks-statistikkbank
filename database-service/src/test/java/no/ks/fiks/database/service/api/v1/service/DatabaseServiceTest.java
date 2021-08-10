@@ -65,14 +65,46 @@ class DatabaseServiceTest {
     }
 
     @Test
-    void testSecondRegexSplit() {
+    //TODO: Oppdater til å bruke regex funksjoner i DatabaseService. Endre result til å være evt. return verdi
+    void testCommandDestinationRegexSplit() {
         String testString = "create table TEST_S.Test";
 
-        String[] a = testString.split("((?!\\,) (?![a-z]|[A-Z]))");
+        //Splitt på mellomrom som ikke har create rett før
+        String[] result = testString.split("((?<!create) )");
 
-        assertEquals("create table TEST_S.Test", a[0]);
+        assertEquals(2, result.length);
+        assertEquals("create table", result[0]);
+        assertEquals("TEST_S.Test", result[1]);
     }
 
+    @Test
+    //TODO: Oppdater til å bruke regex funksjoner i DatabaseService. Endre result til å være evt. return verdi
+    void testColumnDefinitionRegexSplitWithoutSpaces() {
+        String testString = "Varchar varchar(255), Integer int, Numeric numeric(18,2)";
+
+        //Splitt på mellomrom med og uten komma foran
+        String[] result = testString.split(",\\s");
+
+        assertEquals(3, result.length);
+        assertEquals("Varchar varchar(255)", result[0]);
+        assertEquals("Integer int", result[1]);
+        assertEquals("Numeric numeric(18,2)", result[2]);
+    }
+
+    @Test
+    //TODO: Oppdater til å bruke regex funksjoner i DatabaseService. Endre result til å være evt. return verdi
+    void testColumnDefinitionRegexSplitWithSpaces() {
+        String testString = "Varchar varchar (255), Integer int, Numeric numeric (18,2)";
+
+        //Splitt på mellomrom med og uten komma foran
+        String[] result = testString.split(",\\s");
+
+        assertEquals(3, result.length);
+        assertEquals("Varchar varchar (255)", result[0]);
+        assertEquals("Integer int", result[1]);
+        assertEquals("Numeric numeric (18,2)", result[2]);
+    }
+    /*
     @Test
     void testCreateTableValidStringStructure() {
         inputString = "create table TEST_S.TEST (Regionkode varchar(100))";
@@ -123,4 +155,6 @@ class DatabaseServiceTest {
     @Test
     void dropTable() {
     }
+
+     */
 }
