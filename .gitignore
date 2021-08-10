@@ -1,2 +1,3 @@
 /database-service/src/main/resources/application.properties
 /database-service/target/
+*.class
