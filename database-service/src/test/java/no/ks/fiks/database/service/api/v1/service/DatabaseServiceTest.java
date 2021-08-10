@@ -39,6 +39,50 @@ class DatabaseServiceTest {
     }
 
     @Test
+    void testIncorrectSyntaxOnInputString() {
+        // Missing a ) at the end to have the correct syntax
+        inputString = "create table TEST_S.TEST (Regionkode varchar(100)";
+        expectedResultString = "SqlException. Error: 102. Incorrect syntax near ')'.";
+
+        assertEquals(expectedResultString, dbs.runSqlStatement(jdbcTemplate, inputString));
+    }
+
+    @Test
+    void testCreateNonExistingTable() {
+        inputString = "create table TEST_S.TEST (Regionkode varchar(100))";
+        expectedResultString = "OK";
+
+        assertEquals(expectedResultString, dbs.runSqlStatement(jdbcTemplate, inputString));
+    }
+
+    @Test
+    void testCreateExistingTable() {
+        inputString = "create table TEST_S.TEST (Regionkode varchar(100))";
+        expectedResultString = "SqlException. Error: 2714. There is already an object named 'TEST' in the database.";
+
+        dbs.runSqlStatement(jdbcTemplate, inputString);
+
+        assertEquals(expectedResultString, dbs.runSqlStatement(jdbcTemplate, inputString));
+    }
+
+    @Test
+    void testDropNonExistingTable() {
+        inputString = "drop table TEST_S.TEST";
+        expectedResultString = "SqlException. Error: 3701. Cannot drop the table 'TEST_S.TEST'," +
+                " because it does not exist or you do not have permission.";
+
+        assertEquals(expectedResultString, dbs.runSqlStatement(jdbcTemplate, inputString));
+    }
+
+    @Test
+    void testDropExistingTable() {
+        inputString = "create table TEST_S.TEST (Regionkode varchar(100))";
+        expectedResultString = "OK";
+
+        assertEquals(expectedResultString, dbs.runSqlStatement(jdbcTemplate, inputString));
+    }
+
+    @Test
     //TODO: Oppdater til å bruke regex funksjoner i DatabaseService. Endre result til å være evt. return verdi
     void testFirstRegexSplitWithoutSpacesAfterType() {
         String testString = "create table TEST_S.Test (Varchar varchar(255), Integer int, Numeric numeric(18,2))";

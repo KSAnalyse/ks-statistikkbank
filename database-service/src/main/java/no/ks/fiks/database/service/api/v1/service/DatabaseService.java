@@ -123,7 +123,7 @@ public class DatabaseService {
             SQLException se = (SQLException) e.getRootCause();
             errorCode = se.getErrorCode();
 
-            return "SqlException. Errorcode: " + errorCode + ". " + se.getMessage();
+            return "SqlException. Error: " + errorCode + ". " + se.getMessage();
         } catch (Exception e) {
             return e.getClass().getName();
         }
