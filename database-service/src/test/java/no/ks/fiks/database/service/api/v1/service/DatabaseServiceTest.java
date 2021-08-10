@@ -39,6 +39,41 @@ class DatabaseServiceTest {
     }
 
     @Test
+    //TODO: Oppdater til å bruke regex funksjoner i DatabaseService. Endre result til å være evt. return verdi
+    void testFirstRegexSplitWithoutSpacesAfterType() {
+        String testString = "create table TEST_S.Test (Varchar varchar(255), Integer int, Numeric numeric(18,2))";
+
+        //Splitter på mellomrom som ikke har ',', 'varchar' eller 'numeric' før og ikke en bokstav etter
+        String[] result = testString.split("((?<!\\,|varchar|numeric) (?![a-z]|[A-Z]))");
+
+        assertEquals(2, result.length);
+        assertEquals("create table TEST_S.Test", result[0]);
+        assertEquals("(Varchar varchar(255), Integer int, Numeric numeric(18,2))", result[1]);
+    }
+
+    @Test
+    //TODO: Oppdater til å bruke regex funksjoner i DatabaseService. Endre result til å være evt. return verdi
+    void testFirstRegexSplitWithSpacesAfterType() {
+        String testString = "create table TEST_S.Test (Varchar varchar (255), Integer int, Numeric numeric (18,2))";
+
+        //Splitter på mellomrom som ikke har ',', 'varchar' eller 'numeric' før og ikke en bokstav etter
+        String[] result = testString.split("((?<!\\,|varchar|numeric) (?![a-z]|[A-Z]))");
+
+        assertEquals(2, result.length);
+        assertEquals("create table TEST_S.Test", result[0]);
+        assertEquals("(Varchar varchar (255), Integer int, Numeric numeric (18,2))", result[1]);
+    }
+
+    @Test
+    void testSecondRegexSplit() {
+        String testString = "create table TEST_S.Test";
+
+        String[] a = testString.split("((?!\\,) (?![a-z]|[A-Z]))");
+
+        assertEquals("create table TEST_S.Test", a[0]);
+    }
+
+    @Test
     void testCreateTableValidStringStructure() {
         inputString = "create table TEST_S.TEST (Regionkode varchar(100))";
         expectedResultString = "Table created";
