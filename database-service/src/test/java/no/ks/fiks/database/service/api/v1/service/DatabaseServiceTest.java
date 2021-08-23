@@ -128,15 +128,17 @@ class DatabaseServiceTest {
 
     @Test
     void testNonValidCommand() {
-        String createString, dropString, insertString;
+        String createString, dropString, insertString, patternAtEndString;
 
         createString= "create tabl";
         dropString = "dro table";
         insertString = "insert into";
+        patternAtEndString = "test create table";
 
         assertFalse(createString.matches(commandRegexPattern));
         assertFalse(dropString.matches(commandRegexPattern));
         assertFalse(insertString.matches(commandRegexPattern));
+        assertFalse(patternAtEndString.matches(commandRegexPattern));
     }
 
     @Test
