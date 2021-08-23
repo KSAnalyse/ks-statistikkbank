@@ -20,13 +20,13 @@ class DatabaseServiceTest {
 
     private DatabaseService dbs;
     private String tableName, expectedResultString, inputString;
-    private String regexPattern;
+    private String syntaxRegexPattern;
 
     @BeforeEach
     void setUp() {
         dbs = new DatabaseService();
         tableName = "TEST_S.TEST";
-        regexPattern = "((?<!\\,|create|drop|truncate|varchar|numeric) (?!varchar|numeric|int|(not )?null))";
+        syntaxRegexPattern = "((?<!\\,|create|drop|truncate|varchar|numeric) (?!varchar|numeric|int|(not )?null))";
         dbs.dropTable(jdbcTemplate, "drop table " + tableName);
     }
 
@@ -90,7 +90,7 @@ class DatabaseServiceTest {
         String testString = "create table TEST_S.Test (Varchar varchar(255), Integer int, Numeric numeric(18,2))";
 
         //Splitter på mellomrom som ikke har ',', 'varchar' eller 'numeric' før og ikke en bokstav etter
-        String[] result = testString.split(regexPattern);
+        String[] result = testString.split(syntaxRegexPattern);
         assertEquals(3, result.length);
         assertEquals("create table", result[0]);
         assertEquals("TEST_S.Test", result[1]);
@@ -103,7 +103,7 @@ class DatabaseServiceTest {
         String testString = "create table TEST_S.Test (Varchar varchar (255), Integer int, Numeric numeric (18,2))";
 
         //Splitter på mellomrom som ikke har ',', 'varchar' eller 'numeric' før og ikke en bokstav etter
-        String[] result = testString.split(regexPattern);
+        String[] result = testString.split(syntaxRegexPattern);
 
         assertEquals(3, result.length);
         assertEquals("create table", result[0]);
