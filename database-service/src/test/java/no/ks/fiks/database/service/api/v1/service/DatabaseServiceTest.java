@@ -9,8 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class DatabaseServiceTest {
@@ -20,13 +19,16 @@ class DatabaseServiceTest {
 
     private DatabaseService dbs;
     private String tableName, expectedResultString, inputString;
-    private String syntaxRegexPattern;
+    private String syntaxRegexPattern, commandRegexPattern;
 
     @BeforeEach
     void setUp() {
         dbs = new DatabaseService();
         tableName = "TEST_S.TEST";
+
         syntaxRegexPattern = "((?<!\\,|create|drop|truncate|varchar|numeric) (?!varchar|numeric|int|(not )?null))";
+        commandRegexPattern = "(create|drop|truncate) table";
+
         dbs.dropTable(jdbcTemplate, "drop table " + tableName);
     }
 
@@ -109,6 +111,36 @@ class DatabaseServiceTest {
         assertEquals("create table", result[0]);
         assertEquals("TEST_S.Test", result[1]);
         assertEquals("(Varchar varchar (255), Integer int, Numeric numeric (18,2))", result[2]);
+    }
+
+    @Test
+    void testValidCommand() {
+        String createString, dropString, truncateString;
+
+        createString= "create table";
+        dropString = "drop table";
+        truncateString = "truncate table";
+
+
+
+        assertTrue(createString.matches(commandRegexPattern));
+        assertTrue(dropString.matches(commandRegexPattern));
+        assertTrue(truncateString.matches(commandRegexPattern));
+    }
+
+    @Test
+    void testNonValidCommand() {
+        String createString, dropString, insertString;
+
+        createString= "create tabl";
+        dropString = "dro table";
+        insertString = "insert into";
+
+
+
+        assertFalse(createString.matches(commandRegexPattern));
+        assertFalse(dropString.matches(commandRegexPattern));
+        assertFalse(insertString.matches(commandRegexPattern));
     }
 
     @Test
