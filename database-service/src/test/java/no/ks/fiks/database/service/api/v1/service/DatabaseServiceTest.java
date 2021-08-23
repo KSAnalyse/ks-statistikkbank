@@ -121,8 +121,6 @@ class DatabaseServiceTest {
         dropString = "drop table";
         truncateString = "truncate table";
 
-
-
         assertTrue(createString.matches(commandRegexPattern));
         assertTrue(dropString.matches(commandRegexPattern));
         assertTrue(truncateString.matches(commandRegexPattern));
@@ -135,8 +133,6 @@ class DatabaseServiceTest {
         createString= "create tabl";
         dropString = "dro table";
         insertString = "insert into";
-
-
 
         assertFalse(createString.matches(commandRegexPattern));
         assertFalse(dropString.matches(commandRegexPattern));
