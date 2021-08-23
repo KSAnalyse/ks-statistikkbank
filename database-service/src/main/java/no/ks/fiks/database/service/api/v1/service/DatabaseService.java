@@ -37,16 +37,22 @@ public class DatabaseService {
         switch (splitSqlStatement.get(0).toLowerCase()) {
             case "create":
                 checkCreateStatement(splitSqlStatement);
+                break;
             case "drop":
                 checkDropStatement(splitSqlStatement);
+                break;
             case "truncate":
                 checkTruncateStatement(splitSqlStatement);
+                break;
             case "insert":
                 checkInsertStatement(splitSqlStatement);
+                break;
             case "delete":
                 checkDeleteStatement(splitSqlStatement);
+                break;
             case "update":
                 checkUpdateStatement(splitSqlStatement);
+                break;
         }
         return null;
     }
