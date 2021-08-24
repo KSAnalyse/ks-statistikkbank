@@ -29,7 +29,7 @@ class DatabaseServiceTest {
         syntaxRegexPattern = "((?<!\\,|create|drop|truncate|varchar|numeric) (?!varchar|numeric|int|(not )?null))";
         commandRegexPattern = "(create|drop|truncate) table";
 
-        dbs.dropTable(jdbcTemplate, "drop table " + tableName);
+        dbs.runSqlStatement(jdbcTemplate, "drop table " + tableName);
     }
 
     @AfterEach

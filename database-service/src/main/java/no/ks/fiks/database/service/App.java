@@ -9,6 +9,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class App {
     public static void main( String[] args ) {
         SpringApplication.run(App.class, args);
-        new DatabaseService().splitSqlStatment("create table TEST_S.Test (Regionkode varchar(255) NOT NULL, Statistikkvariabelkode varchar(255) NOT NULL, Test int NOT NULL, Verdi numeric(18,0) NULL)");
+        //new DatabaseService().checkSqlStatement("create table TEST_S.Test (Regionkode varchar(255) null, Statistikkvariabelkode varchar(255) not null, Test int not null, Verdi numeric(18,0) null)");
     }
 }

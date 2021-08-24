@@ -23,11 +23,16 @@ public class DatabaseServiceController {
 
     @PostMapping("/create-table")
     public String createTable(@Valid @RequestBody String createString) {
-        return dbs.createTable(jdbcTemplate, createString);
+        return dbs.checkSqlStatement(jdbcTemplate, createString);
     }
 
     @PostMapping("/drop-table")
     public String dropTable(@Valid @RequestBody String dropTable) {
-        return dbs.dropTable(jdbcTemplate, dropTable);
+        return dbs.checkSqlStatement(jdbcTemplate, dropTable);
+    }
+
+    @PostMapping("/truncate-table")
+    public String trunacteTable(@Valid @RequestBody String truncateTable) {
+        return dbs.checkSqlStatement(jdbcTemplate, truncateTable);
     }
 }
