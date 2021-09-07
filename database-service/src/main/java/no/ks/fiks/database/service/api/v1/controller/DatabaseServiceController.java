@@ -1,5 +1,6 @@
 package no.ks.fiks.database.service.api.v1.controller;
 
+import no.ks.fiks.database.service.api.v1.config.SqlConfiguration;
 import no.ks.fiks.database.service.api.v1.service.DatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,7 +15,7 @@ public class DatabaseServiceController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private DatabaseService dbs = new DatabaseService();
+    private DatabaseService dbs = new DatabaseService(new SqlConfiguration());
 
     @GetMapping("/test")
     public String test() {
