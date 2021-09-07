@@ -85,10 +85,24 @@ class DatabaseServiceTest {
     }
 
     @Test
-    void testCreateValidTable() {
+    void testCreateValidTableOneColumn() {
         String sqlQuery = "create table " + validDest + " ([Col1] [varchar] (200))";
 
         assertEquals("OK", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
+    }
+
+    @Test
+    void testCreateValidTableMultipleColumns() {
+        String sqlQuery = "create table " + validDest + " ([Col1] [varchar] (200), [Col2] [int])";
+
+        assertEquals("OK", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
+    }
+
+    @Test
+    void testCreateInvalidTableOneColumn() {
+        String sqlQuery = "create table " + validDest + " ([Col1] [varchar (200))";
+
+        assertEquals("Not a valid structure on query.", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
     }
 
     @Test

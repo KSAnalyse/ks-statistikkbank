@@ -8,10 +8,13 @@ import org.springframework.stereotype.Component;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class DatabaseService {
-
+    private Pattern createColumnRegex3;
+    private Matcher matcher;
     private final String createCommandRegex, dropCommandRegex, dropQueryRegex, createQueryRegex,
             truncateCommandRegex, truncateQueryRegex, tableNameRegex, schemaName, createDestParamSplitRegex,
             createColumnRegex;
@@ -37,7 +40,7 @@ public class DatabaseService {
         numericRegex = "\\[numeric\\] \\(\\d+\\,\\d+\\)";
 
         createColumnRegex = "\\((?:\\[\\w+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
-        createColumnRegex2 = "(?:\\[\\w+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+";
+        createColumnRegex2 = "(?:(\\[\\w+\\]) (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+";
 
         dropCommandRegex = "(drop table)";
         dropQueryRegex = dropCommandRegex + " " + tableNameRegex;
@@ -53,17 +56,25 @@ public class DatabaseService {
 
     public String checkSqlStatement(JdbcTemplate jdbcTemplate, String sqlStatement) {
         String[] querySplit;
-        int test;
 
         if (sqlStatement.matches(createQueryRegex)) {
             querySplit = sqlStatement.replaceAll(createCommandRegex + " ", "").split(" ");
-
+            createColumnRegex3 = Pattern.compile(createColumnRegex2);
+            matcher = createColumnRegex3.matcher(sqlStatement.replaceAll(createCommandRegex + " " + tableNameRegex, ""));
             if (!checkValidTableName(querySplit[0])) {
                 return "Not a valid destination name.";
             }
-            test = sqlStatement.replaceAll(createCommandRegex + " " + tableNameRegex, "").indexOf(createColumnRegex2);
 
-            return ""+test;
+            if (matcher.find()) {
+                System.out.println("Amount of groups: " + matcher.groupCount());
+                System.out.println(matcher.group(1));
+                System.out.println(matcher.group(2));
+                return "temp";
+            }
+
+            //test = sqlStatement.replaceAll(createCommandRegex + " " + tableNameRegex, "").indexOf(createColumnRegex2);
+
+            return "Doh!";
 
         } else if (sqlStatement.matches(dropQueryRegex)) {
             querySplit = sqlStatement.replaceAll(dropCommandRegex + " ", "").split(" ");
