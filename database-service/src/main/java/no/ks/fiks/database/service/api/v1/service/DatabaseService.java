@@ -39,7 +39,7 @@ public class DatabaseService {
         intRegex = "\\[int\\]";
         numericRegex = "\\[numeric\\] \\(\\d+\\,\\d+\\)";
 
-        createColumnRegex = "\\((?:\\[\\w+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
+        createColumnRegex = "\\((?:\\[(\\w|\\s)+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
         createColumnRegex2 = "(?:(\\[\\w+\\]) (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+";
 
         dropCommandRegex = "(drop table)";
@@ -66,10 +66,12 @@ public class DatabaseService {
             }
 
             if (matcher.find()) {
-                System.out.println("Amount of groups: " + matcher.groupCount());
-                System.out.println(matcher.group(1));
-                System.out.println(matcher.group(2));
-                return "temp";
+                if (checkValidColumnDeclaration(matcher.group(0))) {
+                    System.out.println(sqlStatement);
+                    return runSqlStatement(jdbcTemplate, sqlStatement);
+                } else {
+                    return "not cool";
+                }
             }
 
             //test = sqlStatement.replaceAll(createCommandRegex + " " + tableNameRegex, "").indexOf(createColumnRegex2);
@@ -132,6 +134,77 @@ public class DatabaseService {
         return true;
     }
 
+    private boolean checkValidColumnDeclaration(String columnDeclaration) {
+        String[] columnDeclarationSplit = columnDeclaration.split(", ");
+
+        for (String columnDecl : columnDeclarationSplit) {
+            String[] columnDeclValues = columnDecl.replaceAll("[\\[\\]\\(\\)]", "").split(" ");
+
+            if (columnDeclValues.length < 2) {
+                System.out.println("Should be at least two parameters for each column.");
+                return false;
+            }
+
+            if (stringContainsItemFromList(columnDeclValues[0],
+                    sqlConfig.getKeywordList()))
+                return false;
+
+            if (columnDeclValues[1].equals("int")) {
+                if (columnDeclValues.length != 2)
+                    return false;
+            } else {
+                if (!checkColumnSizeValues(columnDeclValues[1], columnDeclValues[2]))
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean checkColumnSizeValues(String type, String values) {
+
+        switch (type) {
+            case "varchar":
+                if (values.isBlank()) {
+                    System.out.println("Varchar must have a defined size on the form (size)");
+                    return false;
+                }
+
+                int varcharSize = Integer.parseInt(values);
+
+                if (varcharSize > sqlConfig.getVarcharMaxSize()) {
+                    System.out.println("Varchar size " + varcharSize + "is larger than the allowed max of " + sqlConfig.getVarcharMaxSize());
+                    return false;
+                }
+
+                break;
+
+            case "numeric":
+
+                if (values.isBlank())
+                    return false;
+
+                String[] numericValues = values.split(",");
+
+                if (numericValues.length != 2)
+                    return false;
+
+                if (Integer.parseInt(numericValues[0]) > sqlConfig.getNumericMaxPrecision())
+                    return false;
+
+                if (Integer.parseInt(numericValues[1]) > sqlConfig.getNumericMaxScale())
+                    return false;
+
+                break;
+
+            case "default":
+                System.out.println(type + " is a non-supported column type.");
+                return false;
+        }
+
+        return true;
+    }
+
     private boolean checkValidTableNameStructure(String tableName) {
         return tableName.matches(tableNameRegex);
     }
@@ -151,6 +224,7 @@ public class DatabaseService {
      */
     public String runSqlStatement(JdbcTemplate jdbcTemplate, String query) {
         try {
+            System.out.println(query);
             jdbcTemplate.execute(query);
         } catch (DataAccessException e) {
             SQLException se = (SQLException) e.getRootCause();
