@@ -13,86 +13,94 @@ import java.util.regex.Pattern;
 
 @Component
 public class DatabaseService {
-    private Pattern createColumnRegex3;
-    private Matcher matcher;
+    private final String createColumnRegexWithoutParenthesis;
     private final String createCommandRegex, dropCommandRegex, dropQueryRegex, createQueryRegex,
-            truncateCommandRegex, truncateQueryRegex, tableNameRegex, schemaName, createDestParamSplitRegex,
-            createColumnRegex;
-    private final String createColumnRegex2;
+            truncateCommandRegex, truncateQueryRegex, tableNameRegex, schemaName;
 
-    private String varcharRegex, intRegex, numericRegex;
+    //private final String varcharRegex, intRegex, numericRegex;
 
     private final SqlConfiguration sqlConfig;
-    private final String columnNameRegex;
+    //private final String columnNameRegex;
 
     @Autowired
     public DatabaseService(SqlConfiguration sqlConfig) {
+        final String createColumnRegexWithParenthesis;
+        final String varcharRegex, intRegex, numericRegex;
         this.sqlConfig = sqlConfig;
 
         schemaName = sqlConfig.getSchemaName();
 
         //[schemaName]|schemaName.[tableName]|tableName
         tableNameRegex = "((\\[\\w+\\]|(\\w+))\\.(\\[\\w+\\]|\\w+))";
-        columnNameRegex = "\\[([a-z]|[A-Z]|[0-9]|_)+\\]";
+        //columnNameRegex = "\\[([a-z]|[A-Z]|[0-9]|_)+\\]";
 
         varcharRegex = "\\[varchar\\] \\(\\d+\\)";
         intRegex = "\\[int\\]";
         numericRegex = "\\[numeric\\] \\(\\d+\\,\\d+\\)";
 
-        createColumnRegex = "\\((?:\\[(\\w|\\s)+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
-        createColumnRegex2 = "(?:(\\[\\w+\\]) (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+";
+        createColumnRegexWithParenthesis = "\\((?:\\[(\\w|\\s)+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
+        createColumnRegexWithoutParenthesis = "(?:(\\[\\w+\\]) (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+";
 
         dropCommandRegex = "(drop table)";
         dropQueryRegex = dropCommandRegex + " " + tableNameRegex;
 
         createCommandRegex = "(create table)";
-        //split on whitespace that are not preceded by a-z, A-Z, 0-9 or ','
-        createDestParamSplitRegex = "((?<![a-z]|[A-Z]|[0-9]|\\,) )";
-        createQueryRegex = createCommandRegex + " " + tableNameRegex + " " + createColumnRegex;
+        createQueryRegex = createCommandRegex + " " + tableNameRegex + " " + createColumnRegexWithParenthesis;
 
         truncateCommandRegex = "(truncate table)";
         truncateQueryRegex = truncateCommandRegex + " " + tableNameRegex;
     }
 
-    public String checkSqlStatement(JdbcTemplate jdbcTemplate, String sqlStatement) {
+    /** Checks if an SQL query is valid
+     *
+     * Checks if an SQL query is either a create, drop or truncate query.
+     * If it's either a drop or truncate query, checks that the query matches the expected structure before running it.
+     * If it's a create query it also checks the column declarations before running it.
+     *
+     * @param jdbcTemplate the jdbcTemplate with the database configuration
+     * @param sqlQuery the SQL query that is supposed to be run
+     * @return an error message if the table name isn't valid, the query doesn't match the required structure or an
+     *         SQL error code and corresponding message if the query fails
+     */
+    public String checkSqlStatement(JdbcTemplate jdbcTemplate, String sqlQuery) {
+        Pattern regexPattern;
+        Matcher matcher;
         String[] querySplit;
 
-        if (sqlStatement.matches(createQueryRegex)) {
-            querySplit = sqlStatement.replaceAll(createCommandRegex + " ", "").split(" ");
-            createColumnRegex3 = Pattern.compile(createColumnRegex2);
-            matcher = createColumnRegex3.matcher(sqlStatement.replaceAll(createCommandRegex + " " + tableNameRegex, ""));
+        if (sqlQuery.matches(createQueryRegex)) {
+            querySplit = sqlQuery.replaceAll(createCommandRegex + " ", "").split(" ");
+            regexPattern = Pattern.compile(createColumnRegexWithoutParenthesis);
+            matcher = regexPattern.matcher(sqlQuery.replaceAll(createCommandRegex + " " + tableNameRegex, ""));
+
             if (!checkValidTableName(querySplit[0])) {
                 return "Not a valid destination name.";
             }
 
             if (matcher.find()) {
                 if (checkValidColumnDeclaration(matcher.group(0))) {
-                    System.out.println(sqlStatement);
-                    return runSqlStatement(jdbcTemplate, sqlStatement);
+                    return runSqlStatement(jdbcTemplate, sqlQuery);
                 } else {
-                    return "not cool";
+                    return "Not a valid column declaration.";
                 }
             }
 
-            //test = sqlStatement.replaceAll(createCommandRegex + " " + tableNameRegex, "").indexOf(createColumnRegex2);
+            return "The input did not match the expected format.";
 
-            return "Doh!";
-
-        } else if (sqlStatement.matches(dropQueryRegex)) {
-            querySplit = sqlStatement.replaceAll(dropCommandRegex + " ", "").split(" ");
+        } else if (sqlQuery.matches(dropQueryRegex)) {
+            querySplit = sqlQuery.replaceAll(dropCommandRegex + " ", "").split(" ");
 
             if (!checkValidTableName(querySplit[0]))
                 return "Not a valid destination name.";
 
-            return runSqlStatement(jdbcTemplate, sqlStatement);
+            return runSqlStatement(jdbcTemplate, sqlQuery);
 
-        } else if (sqlStatement.matches(truncateQueryRegex)) {
-            querySplit = sqlStatement.replaceAll(truncateCommandRegex + " ", "").split(" ");
+        } else if (sqlQuery.matches(truncateQueryRegex)) {
+            querySplit = sqlQuery.replaceAll(truncateCommandRegex + " ", "").split(" ");
 
             if (!checkValidTableName(querySplit[0]))
                 return "Not a valid destination name.";
 
-            return runSqlStatement(jdbcTemplate, sqlStatement);
+            return runSqlStatement(jdbcTemplate, sqlQuery);
         }
 
         return "Not a valid structure on query.";
@@ -164,42 +172,32 @@ public class DatabaseService {
     private boolean checkColumnSizeValues(String type, String values) {
 
         switch (type) {
-            case "varchar":
+            case "varchar" -> {
                 if (values.isBlank()) {
                     System.out.println("Varchar must have a defined size on the form (size)");
                     return false;
                 }
-
                 int varcharSize = Integer.parseInt(values);
-
                 if (varcharSize > sqlConfig.getVarcharMaxSize()) {
-                    System.out.println("Varchar size " + varcharSize + "is larger than the allowed max of " + sqlConfig.getVarcharMaxSize());
+                    System.out.println("Varchar size " + varcharSize + " is larger than the allowed max of " + sqlConfig.getVarcharMaxSize());
                     return false;
                 }
-
-                break;
-
-            case "numeric":
-
+            }
+            case "numeric" -> {
                 if (values.isBlank())
                     return false;
-
                 String[] numericValues = values.split(",");
-
                 if (numericValues.length != 2)
                     return false;
-
                 if (Integer.parseInt(numericValues[0]) > sqlConfig.getNumericMaxPrecision())
                     return false;
-
                 if (Integer.parseInt(numericValues[1]) > sqlConfig.getNumericMaxScale())
                     return false;
-
-                break;
-
-            case "default":
+            }
+            case "default" -> {
                 System.out.println(type + " is a non-supported column type.");
                 return false;
+            }
         }
 
         return true;
@@ -218,18 +216,21 @@ public class DatabaseService {
      * <p>
      * Tries to run the query provided and returns an error if an exception occurs
      *
-     * @param jdbcTemplate
+     * @param jdbcTemplate jdbcTemplate used to connect to the database
      * @param query        the query provided
      * @return an error message if something went wrong, else "OK"
      */
     public String runSqlStatement(JdbcTemplate jdbcTemplate, String query) {
         try {
-            System.out.println(query);
             jdbcTemplate.execute(query);
         } catch (DataAccessException e) {
             SQLException se = (SQLException) e.getRootCause();
 
-            return "SQL Error: " + se.getErrorCode() + ". " + se.getMessage();
+            try {
+                return "SQL Error: " + se.getErrorCode() + ". " + se.getMessage();
+            } catch (NullPointerException npe) {
+                return "Something went wrong while getting the SQL error code";
+            }
         } catch (Exception e) {
             return e.getClass().getName();
         }

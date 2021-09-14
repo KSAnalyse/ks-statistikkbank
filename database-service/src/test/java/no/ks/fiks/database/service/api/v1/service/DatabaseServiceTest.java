@@ -113,7 +113,7 @@ class DatabaseServiceTest {
 
         dbs.runSqlStatement(jdbcTemplate, "drop table " + validDest);
 
-        assertEquals("not cool", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
+        assertEquals("Not a valid column declaration.", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
     }
 
     @Test
