@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import no.ks.fiks.Service.InsertTableService;
 
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -20,6 +21,8 @@ public class DatabaseService {
     //private final String varcharRegex, intRegex, numericRegex;
 
     private final SqlConfiguration sqlConfig;
+    private final String insertCommandRegex, insertQueryRegex;
+    private final String valuesRegex;
     //private final String columnNameRegex;
 
     @Autowired
@@ -38,6 +41,8 @@ public class DatabaseService {
         intRegex = "\\[int\\]";
         numericRegex = "\\[numeric\\] \\(\\d+\\,\\d+\\)";
 
+        valuesRegex = "\\((?:(\"\\w+\"|\\d+\\.?\\d*)(\\, )?)+\\)";
+
         createColumnRegexWithParenthesis = "\\((?:\\[(\\w|\\s)+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
         createColumnRegexWithoutParenthesis = "(?:(\\[\\w+\\]) (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+";
 
@@ -49,6 +54,9 @@ public class DatabaseService {
 
         truncateCommandRegex = "(truncate table)";
         truncateQueryRegex = truncateCommandRegex + " " + tableNameRegex;
+
+        insertCommandRegex = "(insert into)";
+        insertQueryRegex = "(" + insertCommandRegex + " " + tableNameRegex + "( values )" + valuesRegex + ")";
     }
 
     /** Checks if an SQL query is valid
@@ -101,6 +109,18 @@ public class DatabaseService {
                 return "Not a valid destination name.";
 
             return runSqlStatement(jdbcTemplate, sqlQuery);
+        } else if (sqlQuery.matches(insertQueryRegex)) {
+            regexPattern = Pattern.compile(tableNameRegex);
+            matcher = regexPattern.matcher(sqlQuery);
+
+            if (matcher.find()) {
+                if (!checkValidTableName(sqlQuery.substring(matcher.start(), matcher.end())))
+                    return "Not a valid destination name.";
+
+                return runSqlStatement(jdbcTemplate, sqlQuery);
+            }
+
+            return "fail";
         }
 
         return "Not a valid structure on query.";

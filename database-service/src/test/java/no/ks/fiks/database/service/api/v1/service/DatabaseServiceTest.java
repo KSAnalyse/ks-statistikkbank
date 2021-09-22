@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -145,4 +146,22 @@ class DatabaseServiceTest {
         assertFalse(dbs.checkValidTableName(validSchemaName + "." + "SELECT"));
         assertFalse(dbs.checkValidTableName(validSchemaName + "." + "select"));
     }
+
+    @Test
+    void testValidInsertData() {
+        String sqlQuery = "insert into ssbks.inst values (5)";
+        dbs.runSqlStatement(jdbcTemplate, "create table ssbks.inst ([Regionkode] int)");
+
+        assertEquals("OK", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
+    }
+
+
+    @Test
+    void testInsertDataInvalidTableName() {
+        String sqlQuery = "insert into dbo.test values (5)";
+        dbs.runSqlStatement(jdbcTemplate, "create table dbo.test ([Regionkode] int)");
+
+        assertEquals("Not a valid destination name.", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
+    }
+
 }
