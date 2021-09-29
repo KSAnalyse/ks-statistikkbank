@@ -205,6 +205,15 @@ public class DatabaseService {
         return true;
     }
 
+    /**
+     * Checks if the given size in a column declaration is inside the valid range.
+     * Supported types are varchar and numeric. Gets the size range from the SqlConfiguration class.
+     *
+     * @param type The type of the column, e.g. varchar or numeric
+     * @param values The size of the column. Numeric are separated by ",".
+     * @return false if the column declaration isn't valid
+     * @see SqlConfiguration
+     */
     private boolean checkColumnSizeValues(String type, String values) {
 
         switch (type) {
@@ -239,22 +248,36 @@ public class DatabaseService {
         return true;
     }
 
+    /**
+     * Checks if a table name matches the valid syntax.
+     * Uses a regex specified in the constructor to compare with.
+     *
+     * @param tableName name of the table on the form [schemaName].[tableName]
+     * @return true if the table name matches the regex else false
+     */
     private boolean checkValidTableNameStructure(String tableName) {
         return tableName.matches(tableNameRegex);
     }
 
+
+    /**
+     * Checks if the input string is equal to any of the strings in the array
+     *
+     * @param inputStr the input string to be checked, e.g. a column name
+     * @param items an array containing the words to compare with the input string
+     * @return true if the input string matches any of the items in the array, else false
+     */
     private static boolean stringContainsItemFromList(String inputStr, String[] items) {
         return Arrays.stream(items).anyMatch(inputStr::equalsIgnoreCase);
     }
 
     /**
      * Runs the SQL query
-     * <p>
      * Tries to run the query provided and returns an error if an exception occurs
      *
      * @param jdbcTemplate jdbcTemplate used to connect to the database
      * @param query        the query provided
-     * @return an error message if something went wrong, else "OK"
+     * @return an error message on the form "SQL Error: [errorCode]. [errorMessage]" if something went wrong, else "OK"
      */
     public String runSqlStatement(JdbcTemplate jdbcTemplate, String query) {
         try {
