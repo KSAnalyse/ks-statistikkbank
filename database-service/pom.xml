@@ -68,6 +68,13 @@
       <scope>system</scope>
       <systemPath>${pom.basedir}/src/main/resources/ks-json-stat.java.jar</systemPath>
     </dependency>
+    <dependency>
+      <groupId>no.ks.fiks</groupId>
+      <artifactId>ks-ssb-api-call</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>system</scope>
+      <systemPath>${pom.basedir}/src/main/resources/ks-ssb-api-call.jar</systemPath>
+    </dependency>
   </dependencies>
 
   <build>
