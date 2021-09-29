@@ -125,13 +125,14 @@ public class DatabaseService {
         return "Not a valid structure on query.";
     }
 
-    /** Checks if a table name is valid
-     *
+    /**
+     * Checks if a table name is valid.
      * Checks if the destination name contains one dot only, if the schema is a valid one or if it uses any reserved
      * words.
      *
      * @param dest The destination name of the table on the form [schema].[tableName]
      * @return false if it doesn't match the standard else true
+     * @see #checkValidTableNameStructure(String)
      */
     public boolean checkValidTableName(String dest) {
         final String destSchemaName, tableName;
@@ -169,6 +170,14 @@ public class DatabaseService {
         return true;
     }
 
+    /**
+     * Checks if the given column declaration is valid.
+     * Checks if the column name uses a reserved word and if the size of the type is inside the allowed range.
+     *
+     * @param columnDeclaration
+     * @return false if any of the declarations are invalid
+     * @see #checkColumnSizeValues(String, String)
+     */
     private boolean checkValidColumnDeclaration(String columnDeclaration) {
         String[] columnDeclarationSplit = columnDeclaration.split(", ");
 
