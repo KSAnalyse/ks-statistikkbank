@@ -21,6 +21,11 @@ public class DatabaseService {
     private final String insertCommandRegex, insertQueryRegex;
     private final String valuesRegex;
 
+    /**
+     * Sets the different regexes to be used when checking for valid syntax on the different supported sql options
+     *
+     * @param sqlConfig The class containing the sql config settings
+     */
     @Autowired
     public DatabaseService(SqlConfiguration sqlConfig) {
         final String createColumnRegexWithParenthesis;
@@ -120,6 +125,14 @@ public class DatabaseService {
         return "Not a valid structure on query.";
     }
 
+    /** Checks if a table name is valid
+     *
+     * Checks if the destination name contains one dot only, if the schema is a valid one or if it uses any reserved
+     * words.
+     *
+     * @param dest The destination name of the table on the form [schema].[tableName]
+     * @return false if it doesn't match the standard else true
+     */
     public boolean checkValidTableName(String dest) {
         final String destSchemaName, tableName;
         final String[] destSplit;
