@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import no.ks.fiks.Service.InsertTableService;
 
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -18,12 +17,9 @@ public class DatabaseService {
     private final String createCommandRegex, dropCommandRegex, dropQueryRegex, createQueryRegex,
             truncateCommandRegex, truncateQueryRegex, tableNameRegex, schemaName;
 
-    //private final String varcharRegex, intRegex, numericRegex;
-
     private final SqlConfiguration sqlConfig;
     private final String insertCommandRegex, insertQueryRegex;
     private final String valuesRegex;
-    //private final String columnNameRegex;
 
     @Autowired
     public DatabaseService(SqlConfiguration sqlConfig) {
@@ -33,15 +29,13 @@ public class DatabaseService {
 
         schemaName = sqlConfig.getSchemaName();
 
-        //[schemaName]|schemaName.[tableName]|tableName
         tableNameRegex = "((\\[\\w+\\]|(\\w+))\\.(\\[\\w+\\]|\\w+))";
-        //columnNameRegex = "\\[([a-z]|[A-Z]|[0-9]|_)+\\]";
 
         varcharRegex = "\\[varchar\\] \\(\\d+\\)";
         intRegex = "\\[int\\]";
         numericRegex = "\\[numeric\\] \\(\\d+\\,\\d+\\)";
 
-        valuesRegex = "\\((?:(\"\\w+\"|\\d+\\.?\\d*)(\\, )?)+\\)";
+        valuesRegex = "\\((?:(\'\\w+\'|\\d+\\.?\\d*)(\\, )?)+\\)";
 
         createColumnRegexWithParenthesis = "\\((?:\\[(\\w|\\s)+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
         createColumnRegexWithoutParenthesis = "(?:(\\[\\w+\\]) (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+";

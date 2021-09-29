@@ -127,16 +127,6 @@ class DatabaseServiceTest {
     }
 
     @Test
-    void testInvalidNameStructure() {
-        assertFalse(dbs.checkValidTableName("test.test teststt sfdsf"));
-    }
-
-    @Test
-    void testDestinationNameWithSeveralDots() {
-        assertFalse(dbs.checkValidTableName(validSchemaName + "." + validTableName + "." + validTableName));
-    }
-
-    @Test
     void testInvalidSchemaName() {
         assertFalse(dbs.checkValidTableName("dbo." + validTableName));
     }
@@ -150,7 +140,9 @@ class DatabaseServiceTest {
     @Test
     void testValidInsertData() {
         String sqlQuery = "insert into ssbks.inst values (5)";
-        dbs.runSqlStatement(jdbcTemplate, "create table ssbks.inst ([Regionkode] int)");
+
+        dbs.runSqlStatement(jdbcTemplate, "drop table ssbks.inst");
+        dbs.runSqlStatement(jdbcTemplate, "create table ssbks.inst ([Regionkode] varchar (10))");
 
         assertEquals("OK", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
     }
