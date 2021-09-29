@@ -68,7 +68,7 @@ class DatabaseServiceTest {
     void testValidDropTable() {
         dbs.runSqlStatement(jdbcTemplate, "create table " + validDest + "([Regionkode] int)");
 
-        assertEquals("OK", dbs.checkSqlStatement(jdbcTemplate, "drop table " + validDest));
+        assertEquals("OK", dbs.checkQuery(jdbcTemplate, "drop table " + validDest));
 
         dbs.runSqlStatement(jdbcTemplate, "drop table " + validDest);
     }
@@ -77,7 +77,7 @@ class DatabaseServiceTest {
     void testDropTableWithInvalidNameStructure() {
         dbs.runSqlStatement(jdbcTemplate, "create table " + validDest + "([Regionkode] int)");
 
-        assertEquals("Not a valid structure on query.", dbs.checkSqlStatement(jdbcTemplate, "drop table test.test teststt sfdsf"));
+        assertEquals("Not a valid structure on query.", dbs.checkQuery(jdbcTemplate, "drop table test.test teststt sfdsf"));
 
         dbs.runSqlStatement(jdbcTemplate, "drop table " + validDest);
     }
@@ -87,7 +87,7 @@ class DatabaseServiceTest {
         String expectedErrorMessage = "SQL Error: 3701. Cannot drop the table '" + validDest +
                 "', because it does not exist or you do not have permission.";
 
-        assertEquals(expectedErrorMessage, dbs.checkSqlStatement(jdbcTemplate, "drop table " + validDest));
+        assertEquals(expectedErrorMessage, dbs.checkQuery(jdbcTemplate, "drop table " + validDest));
     }
 
     @Test
@@ -96,7 +96,7 @@ class DatabaseServiceTest {
 
         dbs.runSqlStatement(jdbcTemplate, "drop table " + validPersistingDest);
 
-        assertEquals("OK", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
+        assertEquals("OK", dbs.checkQuery(jdbcTemplate, sqlQuery));
     }
 
     @Test
@@ -105,7 +105,7 @@ class DatabaseServiceTest {
 
         dbs.runSqlStatement(jdbcTemplate, "drop table " + validPersistingDestMultipleColumn);
 
-        assertEquals("OK", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
+        assertEquals("OK", dbs.checkQuery(jdbcTemplate, sqlQuery));
     }
 
     @Test
@@ -114,7 +114,7 @@ class DatabaseServiceTest {
 
         dbs.runSqlStatement(jdbcTemplate, "drop table " + validDest);
 
-        assertEquals("Not a valid column declaration.", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
+        assertEquals("Not a valid column declaration.", dbs.checkQuery(jdbcTemplate, sqlQuery));
     }
 
     @Test
@@ -123,7 +123,7 @@ class DatabaseServiceTest {
 
         dbs.runSqlStatement(jdbcTemplate, "drop table " + validDest);
 
-        assertEquals("Not a valid structure on query.", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
+        assertEquals("Not a valid structure on query.", dbs.checkQuery(jdbcTemplate, sqlQuery));
     }
 
     @Test
@@ -144,7 +144,7 @@ class DatabaseServiceTest {
         dbs.runSqlStatement(jdbcTemplate, "drop table ssbks.inst");
         dbs.runSqlStatement(jdbcTemplate, "create table ssbks.inst ([Regionkode] varchar (10))");
 
-        assertEquals("OK", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
+        assertEquals("OK", dbs.checkQuery(jdbcTemplate, sqlQuery));
     }
 
 
@@ -153,7 +153,7 @@ class DatabaseServiceTest {
         String sqlQuery = "insert into dbo.test values (5)";
         dbs.runSqlStatement(jdbcTemplate, "create table dbo.test ([Regionkode] int)");
 
-        assertEquals("Not a valid destination name.", dbs.checkSqlStatement(jdbcTemplate, sqlQuery));
+        assertEquals("Not a valid destination name.", dbs.checkQuery(jdbcTemplate, sqlQuery));
     }
 
 }

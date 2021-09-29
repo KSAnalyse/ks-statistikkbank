@@ -14,12 +14,11 @@ import java.util.regex.Pattern;
 @Component
 public class DatabaseService {
     private final String createColumnRegexWithoutParenthesis;
-    private final String createCommandRegex, dropCommandRegex, dropQueryRegex, createQueryRegex,
-            truncateCommandRegex, truncateQueryRegex, tableNameRegex, schemaName;
+    private final String createCommandRegex, dropTruncateCommandRegex, dropTruncateQueryRegex, createQueryRegex,
+            tableNameRegex, schemaName;
 
     private final SqlConfiguration sqlConfig;
-    private final String insertCommandRegex, insertQueryRegex;
-    private final String valuesRegex;
+    private final String insertQueryRegex;
 
     /**
      * Sets the different regexes to be used when checking for valid syntax on the different supported sql options
@@ -30,6 +29,8 @@ public class DatabaseService {
     public DatabaseService(SqlConfiguration sqlConfig) {
         final String createColumnRegexWithParenthesis;
         final String varcharRegex, intRegex, numericRegex;
+        final String insertCommandRegex, valuesRegex;
+
         this.sqlConfig = sqlConfig;
 
         schemaName = sqlConfig.getSchemaName();
@@ -40,19 +41,16 @@ public class DatabaseService {
         intRegex = "\\[int\\]";
         numericRegex = "\\[numeric\\] \\(\\d+\\,\\d+\\)";
 
-        valuesRegex = "\\((?:(\'\\w+\'|\\d+\\.?\\d*)(\\, )?)+\\)";
+        valuesRegex = "\\((?:('\\w+'|\\d+\\.?\\d*)(\\, )?)+\\)";
 
         createColumnRegexWithParenthesis = "\\((?:\\[(\\w|\\s)+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
         createColumnRegexWithoutParenthesis = "(?:(\\[\\w+\\]) (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+";
 
-        dropCommandRegex = "(drop table)";
-        dropQueryRegex = dropCommandRegex + " " + tableNameRegex;
+        dropTruncateCommandRegex = "((drop|truncate) table)";
+        dropTruncateQueryRegex = dropTruncateCommandRegex + " " + tableNameRegex;
 
         createCommandRegex = "(create table)";
         createQueryRegex = createCommandRegex + " " + tableNameRegex + " " + createColumnRegexWithParenthesis;
-
-        truncateCommandRegex = "(truncate table)";
-        truncateQueryRegex = truncateCommandRegex + " " + tableNameRegex;
 
         insertCommandRegex = "(insert into)";
         insertQueryRegex = "(" + insertCommandRegex + " " + tableNameRegex + "( values )" + valuesRegex + ")";
@@ -69,60 +67,72 @@ public class DatabaseService {
      * @return an error message if the table name isn't valid, the query doesn't match the required structure or an
      *         SQL error code and corresponding message if the query fails
      */
-    public String checkSqlStatement(JdbcTemplate jdbcTemplate, String sqlQuery) {
+    public String checkQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
+
+        if (sqlQuery.matches(createQueryRegex)) {
+            return checkAndRunCreateQuery(jdbcTemplate, sqlQuery);
+
+        } else if (sqlQuery.matches(dropTruncateQueryRegex)) {
+            return checkAndRunDropTruncateQuery(jdbcTemplate, sqlQuery);
+
+        } else if (sqlQuery.matches(insertQueryRegex)) {
+            return checkAndRunInsertQuery(jdbcTemplate, sqlQuery);
+        }
+
+        return "Not a valid structure on query.";
+    }
+
+    private String checkAndRunDropTruncateQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
+        String[] querySplit;
+
+        //Remove the drop/truncate table part from the string and split on whitespace
+        querySplit = sqlQuery.replaceAll(dropTruncateCommandRegex + " ", "").split(" ");
+
+        if (!checkValidTableName(querySplit[0]))
+            return "Not a valid destination name.";
+
+        return runSqlStatement(jdbcTemplate, sqlQuery);
+    }
+
+    private String checkAndRunCreateQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
         Pattern regexPattern;
         Matcher matcher;
         String[] querySplit;
 
-        if (sqlQuery.matches(createQueryRegex)) {
-            querySplit = sqlQuery.replaceAll(createCommandRegex + " ", "").split(" ");
-            regexPattern = Pattern.compile(createColumnRegexWithoutParenthesis);
-            matcher = regexPattern.matcher(sqlQuery.replaceAll(createCommandRegex + " " + tableNameRegex, ""));
+        querySplit = sqlQuery.replaceAll(createCommandRegex + " ", "").split(" ");
+        regexPattern = Pattern.compile(createColumnRegexWithoutParenthesis);
+        matcher = regexPattern.matcher(sqlQuery.replaceAll(createCommandRegex + " " + tableNameRegex, ""));
 
-            if (!checkValidTableName(querySplit[0])) {
-                return "Not a valid destination name.";
-            }
-
-            if (matcher.find()) {
-                if (checkValidColumnDeclaration(matcher.group(0))) {
-                    return runSqlStatement(jdbcTemplate, sqlQuery);
-                } else {
-                    return "Not a valid column declaration.";
-                }
-            }
-
-            return "The input did not match the expected format.";
-
-        } else if (sqlQuery.matches(dropQueryRegex)) {
-            querySplit = sqlQuery.replaceAll(dropCommandRegex + " ", "").split(" ");
-
-            if (!checkValidTableName(querySplit[0]))
-                return "Not a valid destination name.";
-
-            return runSqlStatement(jdbcTemplate, sqlQuery);
-
-        } else if (sqlQuery.matches(truncateQueryRegex)) {
-            querySplit = sqlQuery.replaceAll(truncateCommandRegex + " ", "").split(" ");
-
-            if (!checkValidTableName(querySplit[0]))
-                return "Not a valid destination name.";
-
-            return runSqlStatement(jdbcTemplate, sqlQuery);
-        } else if (sqlQuery.matches(insertQueryRegex)) {
-            regexPattern = Pattern.compile(tableNameRegex);
-            matcher = regexPattern.matcher(sqlQuery);
-
-            if (matcher.find()) {
-                if (!checkValidTableName(sqlQuery.substring(matcher.start(), matcher.end())))
-                    return "Not a valid destination name.";
-
-                return runSqlStatement(jdbcTemplate, sqlQuery);
-            }
-
-            return "fail";
+        if (!checkValidTableName(querySplit[0])) {
+            return "Not a valid destination name.";
         }
 
-        return "Not a valid structure on query.";
+        if (matcher.find()) {
+            if (checkValidColumnDeclaration(matcher.group(0))) {
+                return runSqlStatement(jdbcTemplate, sqlQuery);
+            } else {
+                return "Not a valid column declaration.";
+            }
+        }
+
+        return "The input did not match the expected format.";
+    }
+
+    private String checkAndRunInsertQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
+        Pattern regexPattern;
+        Matcher matcher;
+
+        regexPattern = Pattern.compile(tableNameRegex);
+        matcher = regexPattern.matcher(sqlQuery);
+
+        if (matcher.find()) {
+            if (!checkValidTableName(sqlQuery.substring(matcher.start(), matcher.end())))
+                return "Not a valid destination name.";
+
+            return runSqlStatement(jdbcTemplate, sqlQuery);
+        }
+
+        return "The input did not match the expected format.";
     }
 
     /**
@@ -140,7 +150,7 @@ public class DatabaseService {
 
         destSplit = dest.split("\\.");
 
-        //Name should always be schema.tablename
+        //Name should always be [schemaName].[tableName]
         if (destSplit.length != 2) {
             System.out.println("Invalid destination name. Too many dots.");
             return false;
@@ -163,7 +173,7 @@ public class DatabaseService {
 
         //Make sure that no protected words are used
         if (stringContainsItemFromList(tableName, sqlConfig.getKeywordList())) {
-            System.out.println("Invalid tablename. Reserved word.");
+            System.out.println("Invalid table name. Reserved word.");
             return false;
         }
 
@@ -174,7 +184,7 @@ public class DatabaseService {
      * Checks if the given column declaration is valid.
      * Checks if the column name uses a reserved word and if the size of the type is inside the allowed range.
      *
-     * @param columnDeclaration
+     * @param columnDeclaration the column declaration(s)
      * @return false if any of the declarations are invalid
      * @see #checkColumnSizeValues(String, String)
      */
@@ -182,7 +192,7 @@ public class DatabaseService {
         String[] columnDeclarationSplit = columnDeclaration.split(", ");
 
         for (String columnDecl : columnDeclarationSplit) {
-            String[] columnDeclValues = columnDecl.replaceAll("[\\[\\]\\(\\)]", "").split(" ");
+            String[] columnDeclValues = columnDecl.replaceAll("[\\[\\]()]", "").split(" ");
 
             if (columnDeclValues.length < 2) {
                 System.out.println("Should be at least two parameters for each column.");
