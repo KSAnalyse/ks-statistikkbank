@@ -3,11 +3,17 @@ package no.ks.fiks.database.service.api.v1.service;
 import no.ks.fiks.database.service.api.v1.config.SqlConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StopWatch;
 
+import java.math.BigDecimal;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +47,7 @@ public class DatabaseService {
         intRegex = "\\[int\\]";
         numericRegex = "\\[numeric\\] \\(\\d+\\,\\d+\\)";
 
-        valuesRegex = "\\((?:('\\w+'|\\d+\\.?\\d*)(\\, )?)+\\)";
+        valuesRegex = "(?:\\((?:('\\w+'|\\d+\\.?\\d*)(\\, )?)+\\))(\\,)?+";
 
         createColumnRegexWithParenthesis = "\\((?:\\[(\\w|\\s)+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
         createColumnRegexWithoutParenthesis = "(?:(\\[\\w+\\]) (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+";
@@ -78,6 +84,12 @@ public class DatabaseService {
         } else if (sqlQuery.matches(insertQueryRegex)) {
             return checkAndRunInsertQuery(jdbcTemplate, sqlQuery);
         }
+
+        return "Not a valid structure on query.";
+    }
+
+    public String checkQuery(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult, String tableName) {
+        runSqlStatement(jdbcTemplate, ssbResult, tableName);
 
         return "Not a valid structure on query.";
     }
@@ -249,7 +261,7 @@ public class DatabaseService {
                 if (Integer.parseInt(numericValues[1]) > sqlConfig.getNumericMaxScale())
                     return false;
             }
-            case "default" -> {
+            default -> {
                 System.out.println(type + " is a non-supported column type.");
                 return false;
             }
@@ -304,5 +316,74 @@ public class DatabaseService {
             return e.getClass().getName();
         }
         return "OK";
+    }
+
+    private String runSqlStatement(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult, String tableName) {
+
+        if (ssbResult.size() > 1000000) {
+            int index;
+            for (index = 0; index < ssbResult.size() / 1000000; index++) {
+                List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index*1000000, (index + 1) * 1000000);
+
+                batchUpdateData(jdbcTemplate, sublist, tableName, 1000000);
+            }
+
+            if (ssbResult.size() % 1000000 > 0) {
+                List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index*1000000, ssbResult.size());
+                batchUpdateData(jdbcTemplate, sublist, tableName,
+                        ssbResult.size() % 1000000);
+            }
+
+
+        } else {
+            batchUpdateData(jdbcTemplate, ssbResult, tableName, ssbResult.size());
+        }
+
+        return "";
+    }
+
+    private String batchUpdateData(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult,
+                                   String tableName, int size) {
+        StopWatch timer = new StopWatch();
+        String valuesParam = "";
+
+        for (String[] sa: ssbResult.get(0).keySet()) {
+            for (int i = 0; i < sa.length; i++) {
+                valuesParam += "?,";
+            }
+        }
+
+        valuesParam += "?";
+
+        System.out.println("batchUpdate -> Starting");
+
+        timer.start();
+        jdbcTemplate.batchUpdate(
+                "insert into " + tableName + " values (" + valuesParam + ")",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                        for (String[] sa: ssbResult.get(i).keySet()) {
+                            int c;
+
+                            for (c = 0; c < sa.length; c++) {
+                                preparedStatement.setString(c+1, sa[c]);
+                            }
+
+                            preparedStatement.setBigDecimal(c+1, ssbResult.get(i).get(sa));
+                        }
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return size;
+                    }
+                }
+        );
+        timer.stop();
+
+        System.out.println("batchUpdate -> Total time in seconds: " + timer.getTotalTimeSeconds());
+
+        return "";
     }
 }
