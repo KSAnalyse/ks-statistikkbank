@@ -316,30 +316,41 @@ public class DatabaseService {
         return "OK";
     }
 
+    /**
+     * @param jdbcTemplate
+     * @param ssbResult
+     * @param tableName
+     * @return
+     */
     private String runSqlStatement(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult, String tableName) {
-
-        if (ssbResult.size() > 1000000) {
+        int maxNumberOfRows = 1000000;
+        if (ssbResult.size() > maxNumberOfRows) {
             int index;
-            for (index = 0; index < ssbResult.size() / 1000000; index++) {
-                List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index*1000000, (index + 1) * 1000000);
+            for (index = 0; index < ssbResult.size() / maxNumberOfRows; index++) {
+                List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index*maxNumberOfRows, (index + 1) * maxNumberOfRows);
 
-                batchUpdateData(jdbcTemplate, sublist, tableName, 1000000);
+                batchUpdateData(jdbcTemplate, sublist, tableName);
             }
 
-            if (ssbResult.size() % 1000000 > 0) {
-                List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index*1000000, ssbResult.size());
-                batchUpdateData(jdbcTemplate, sublist, tableName,
-                        ssbResult.size() % 1000000);
+            if (ssbResult.size() % maxNumberOfRows > 0) {
+                List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index*maxNumberOfRows, ssbResult.size());
+                batchUpdateData(jdbcTemplate, sublist, tableName);
             }
         } else {
-            batchUpdateData(jdbcTemplate, ssbResult, tableName, ssbResult.size());
+            batchUpdateData(jdbcTemplate, ssbResult, tableName);
         }
 
         return "OK";
     }
 
+    /**
+     * @param jdbcTemplate
+     * @param ssbResult
+     * @param tableName
+     * @return
+     */
     private String batchUpdateData(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult,
-                                   String tableName, int size) {
+                                   String tableName) {
         StopWatch timer = new StopWatch();
         String valuesParam = "";
         StringBuilder s = new StringBuilder();
@@ -371,7 +382,7 @@ public class DatabaseService {
 
                     @Override
                     public int getBatchSize() {
-                        return size;
+                        return ssbResult.size();
                     }
                 }
         );

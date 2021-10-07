@@ -41,7 +41,14 @@ class DatabaseServiceControllerTest {
     @Test
     void createValidTableWithOnlyYears() {
         assertEquals("OK", dbsc.createTable(
-                "{\"tableCode\":\"11814\",\"numberOfYears\":\"5\"}"
+                "{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}"
+        ));
+    }
+
+    @Test
+    void createValidTableWithAllYears() {
+        assertEquals("OK", dbsc.createTable(
+                "{\"tableCode\":\"11805\",\"numberOfYears\":\"-1\"}"
         ));
     }
 

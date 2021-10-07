@@ -11,7 +11,6 @@ import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadata;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadataVariables;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,21 +33,27 @@ public class DatabaseServiceController {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * @return
+     */
     @GetMapping("/test")
     public String test() {
         return "yep";
     }
 
+    /**
+     * @param createString
+     * @return
+     */
     @PostMapping("/create-table")
     public String createTable(@Valid @RequestBody String createString) {
         String tableName, query, columnDeclarations;
         Map<String, List<String>> filters;
-        StopWatch timer = new StopWatch();
         String result;
 
         try {
             tableName = "ssbks.SSB_" + getTableCode(createString);
-            System.out.println(tableName);
+
             sac = new SsbApiCall(getTableCode(createString), getNumberOfYears(createString),
                     "131","104", "214", "231", "127");
             filters = getFilters(createString);
@@ -60,12 +65,14 @@ public class DatabaseServiceController {
 
             columnDeclarations = createColumnDeclarations(sac.getMetadata());
 
+            //drop the table in case it already exists
             query = String.format("drop table %s", tableName);
             result = dbs.checkQuery(jdbcTemplate, query);
 
             if (!result.equals("OK"))
                 return result;
 
+            //create the table in the db
             query = String.format("create table %s (%s, [Verdi] [numeric] (18,1))", tableName, columnDeclarations);
             result = dbs.checkQuery(jdbcTemplate, query);
 
@@ -74,20 +81,11 @@ public class DatabaseServiceController {
 
             its = new InsertTableService();
 
-            System.out.println("Fetching actual data");
-            timer.start();
+            System.out.println("Fetching data");
             List<String> jsonStatQuery = sac.tableApiCall();
-            timer.stop();
-            System.out.println("Actual data fetched: " + timer.getTotalTimeSeconds());
 
             System.out.println("Structuring the json data");
-            timer = new StopWatch();
-            timer.start();
             List<Map<String[], BigDecimal>> ssbResult = its.structureJsonStatTable(jsonStatQuery);
-            timer.stop();
-            System.out.println("Structured data: " + timer.getTotalTimeSeconds());
-
-            System.out.println("result size:" + ssbResult.size());
 
             return dbs.checkQuery(jdbcTemplate, ssbResult, tableName);
 
@@ -97,16 +95,31 @@ public class DatabaseServiceController {
 
     }
 
+    /**
+     * @param dropTable
+     * @return
+     */
     @PostMapping("/drop-table")
     public String dropTable(@Valid @RequestBody String dropTable) {
         return dbs.checkQuery(jdbcTemplate, dropTable);
     }
 
+    /**
+     * @param truncateTable
+     * @return
+     */
     @PostMapping("/truncate-table")
     public String truncateTable(@Valid @RequestBody String truncateTable) {
         return dbs.checkQuery(jdbcTemplate, truncateTable);
     }
 
+    /**
+     * Gets the value of the tableCode field in the json string provided.
+     *
+     * @param createString the json string
+     * @return the value of tableCode as text
+     * @throws JsonProcessingException
+     */
     private String getTableCode(String createString) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode actualObj = mapper.readTree(createString);
@@ -118,6 +131,13 @@ public class DatabaseServiceController {
 
     }
 
+    /**
+     * Gets the value of the numberOfYears field in the json string provided.
+     *
+     * @param createString the json string
+     * @return the numberOfYears value as int
+     * @throws JsonProcessingException
+     */
     private int getNumberOfYears(String createString) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode actualObj = mapper.readTree(createString);
@@ -128,15 +148,18 @@ public class DatabaseServiceController {
         return actualObj.get("numberOfYears").asInt();
     }
 
+    /**
+     * Gets the value of the filters field in the json string provided and returns it as a map.
+     *
+     * @param createString the json string
+     * @return the map containing the values of the filters field
+     * @throws JsonProcessingException
+     */
     private Map<String, List<String>> getFilters(String createString) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode actualObj = mapper.readTree(createString);
 
         Map<String, List<String>> filterMap = new HashMap<String, List<String>>();
-
-        System.out.println("derperpapraprapr");
-        System.out.println(actualObj.get("filters"));
-        System.out.println("derperpapraprapr2");
 
         if (actualObj.get("filters") == null)
             return null;
@@ -152,6 +175,21 @@ public class DatabaseServiceController {
         return filterMap;
     }
 
+    /**
+     * Creates the column declarations needed for the create query based on the metadata provided.
+     *
+     * For each metadata code in the metadata fetched creates a pair of columns on the form:
+     * [[metadata name]navn] [varchar] (largestvalue)
+     * [[metadata name]kode] [varchar] (largestvalue)
+     * e.g
+     * [Regionkode] [varchar] (5)
+     * [Regionnavn] [varchar] (24)
+     *
+     * If the metadata column is "Tid" then it uses the metadata code instead.
+     *
+     * @param metadata the object containing all the metadata information
+     * @return the column declarations on the mentioned form
+     */
     private String createColumnDeclarations(SsbMetadata metadata) {
         String columnDeclarations ="";
 
