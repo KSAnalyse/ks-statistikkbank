@@ -72,6 +72,9 @@ public class DatabaseService {
      * @param sqlQuery the SQL query that is supposed to be run
      * @return an error message if the table name isn't valid, the query doesn't match the required structure or an
      *         SQL error code and corresponding message if the query fails
+     * @see #checkAndRunCreateQuery(JdbcTemplate, String)
+     * @see #checkAndRunDropTruncateQuery(JdbcTemplate, String)
+     * @see #checkAndRunInsertQuery(JdbcTemplate, String)
      */
     public String checkQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
 
@@ -88,10 +91,24 @@ public class DatabaseService {
         return "Not a valid structure on query.";
     }
 
+    /**
+     * @param jdbcTemplate
+     * @param ssbResult
+     * @param tableName
+     * @return
+     */
     public String checkQuery(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult, String tableName) {
         return runSqlStatement(jdbcTemplate, ssbResult, tableName);
     }
 
+    /**
+     * Checks if the sql query is valid before running it
+     *
+     * @param jdbcTemplate the jdbcTemplate containing all the connection info
+     * @param sqlQuery the query to be checked and run
+     * @return "Not a valid destionation name" if the query is invalid. An
+     * @see #runSqlStatement(JdbcTemplate, String)
+     */
     private String checkAndRunDropTruncateQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
         String[] querySplit;
 
@@ -104,6 +121,15 @@ public class DatabaseService {
         return runSqlStatement(jdbcTemplate, sqlQuery);
     }
 
+    /**
+     * Checks and run a create sql query.
+     *
+     * @param jdbcTemplate the jdbcTemplate with the database configuration
+     * @param sqlQuery the create query to be run
+     * @return depending on the result different messages
+     * @see #checkValidTableName(String)
+     * @see #checkValidColumnDeclaration(String)
+     */
     private String checkAndRunCreateQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
         Pattern regexPattern;
         Matcher matcher;
@@ -128,6 +154,11 @@ public class DatabaseService {
         return "The input did not match the expected format.";
     }
 
+    /**
+     * @param jdbcTemplate
+     * @param sqlQuery
+     * @return
+     */
     private String checkAndRunInsertQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
         Pattern regexPattern;
         Matcher matcher;
