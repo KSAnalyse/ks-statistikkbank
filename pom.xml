@@ -11,8 +11,6 @@
     <modules>
         <module>database-service</module>
         <module>scheduler</module>
-        <module>innhenting-ssb-data</module>
-        <module>innhenting-ssb-klass</module>
     </modules>
 
     <dependencies>

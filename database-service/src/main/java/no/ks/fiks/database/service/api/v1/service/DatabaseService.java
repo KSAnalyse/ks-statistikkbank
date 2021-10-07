@@ -89,9 +89,7 @@ public class DatabaseService {
     }
 
     public String checkQuery(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult, String tableName) {
-        runSqlStatement(jdbcTemplate, ssbResult, tableName);
-
-        return "Not a valid structure on query.";
+        return runSqlStatement(jdbcTemplate, ssbResult, tableName);
     }
 
     private String checkAndRunDropTruncateQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
@@ -333,26 +331,23 @@ public class DatabaseService {
                 batchUpdateData(jdbcTemplate, sublist, tableName,
                         ssbResult.size() % 1000000);
             }
-
-
         } else {
             batchUpdateData(jdbcTemplate, ssbResult, tableName, ssbResult.size());
         }
 
-        return "";
+        return "OK";
     }
 
     private String batchUpdateData(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult,
                                    String tableName, int size) {
         StopWatch timer = new StopWatch();
         String valuesParam = "";
-
+        StringBuilder s = new StringBuilder();
         for (String[] sa: ssbResult.get(0).keySet()) {
             for (int i = 0; i < sa.length; i++) {
                 valuesParam += "?,";
             }
         }
-
         valuesParam += "?";
 
         System.out.println("batchUpdate -> Starting");
@@ -384,6 +379,6 @@ public class DatabaseService {
 
         System.out.println("batchUpdate -> Total time in seconds: " + timer.getTotalTimeSeconds());
 
-        return "";
+        return "OK";
     }
 }
