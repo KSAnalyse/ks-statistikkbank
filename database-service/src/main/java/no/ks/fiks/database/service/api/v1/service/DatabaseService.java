@@ -24,7 +24,6 @@ public class DatabaseService {
             tableNameRegex, schemaName;
 
     private final SqlConfiguration sqlConfig;
-    private final String insertQueryRegex;
 
     /**
      * Sets the different regexes to be used when checking for valid syntax on the different supported sql options
@@ -35,7 +34,6 @@ public class DatabaseService {
     public DatabaseService(SqlConfiguration sqlConfig) {
         final String createColumnRegexWithParenthesis;
         final String varcharRegex, intRegex, numericRegex;
-        final String insertCommandRegex, valuesRegex;
 
         this.sqlConfig = sqlConfig;
 
@@ -47,8 +45,6 @@ public class DatabaseService {
         intRegex = "\\[int\\]";
         numericRegex = "\\[numeric\\] \\(\\d+\\,\\d+\\)";
 
-        valuesRegex = "(?:\\((?:('\\w+'|\\d+\\.?\\d*)(\\, )?)+\\))(\\,)?+";
-
         createColumnRegexWithParenthesis = "\\((?:\\[(\\w|\\s)+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
         createColumnRegexWithoutParenthesis = "(?:(\\[\\w+\\]) (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+";
 
@@ -57,9 +53,6 @@ public class DatabaseService {
 
         createCommandRegex = "(create table)";
         createQueryRegex = createCommandRegex + " " + tableNameRegex + " " + createColumnRegexWithParenthesis;
-
-        insertCommandRegex = "(insert into)";
-        insertQueryRegex = "(" + insertCommandRegex + " " + tableNameRegex + "( values )" + valuesRegex + ")";
     }
 
     /** Checks if an SQL query is valid
@@ -74,7 +67,6 @@ public class DatabaseService {
      *         SQL error code and corresponding message if the query fails
      * @see #checkAndRunCreateQuery(JdbcTemplate, String)
      * @see #checkAndRunDropTruncateQuery(JdbcTemplate, String)
-     * @see #checkAndRunInsertQuery(JdbcTemplate, String)
      */
     public String checkQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
 
@@ -84,8 +76,6 @@ public class DatabaseService {
         } else if (sqlQuery.matches(dropTruncateQueryRegex)) {
             return checkAndRunDropTruncateQuery(jdbcTemplate, sqlQuery);
 
-        } else if (sqlQuery.matches(insertQueryRegex)) {
-            return checkAndRunInsertQuery(jdbcTemplate, sqlQuery);
         }
 
         return "Not a valid structure on query.";
@@ -98,7 +88,7 @@ public class DatabaseService {
      * @return
      */
     public String checkQuery(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult, String tableName) {
-        return runSqlStatement(jdbcTemplate, ssbResult, tableName);
+        return insertData(jdbcTemplate, ssbResult, tableName);
     }
 
     /**
@@ -126,7 +116,7 @@ public class DatabaseService {
      *
      * @param jdbcTemplate the jdbcTemplate with the database configuration
      * @param sqlQuery the create query to be run
-     * @return depending on the result different messages
+     * @return depending on the result different messages. If everything went well "OK".
      * @see #checkValidTableName(String)
      * @see #checkValidColumnDeclaration(String)
      */
@@ -149,28 +139,6 @@ public class DatabaseService {
             } else {
                 return "Not a valid column declaration.";
             }
-        }
-
-        return "The input did not match the expected format.";
-    }
-
-    /**
-     * @param jdbcTemplate
-     * @param sqlQuery
-     * @return
-     */
-    private String checkAndRunInsertQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
-        Pattern regexPattern;
-        Matcher matcher;
-
-        regexPattern = Pattern.compile(tableNameRegex);
-        matcher = regexPattern.matcher(sqlQuery);
-
-        if (matcher.find()) {
-            if (!checkValidTableName(sqlQuery.substring(matcher.start(), matcher.end())))
-                return "Not a valid destination name.";
-
-            return runSqlStatement(jdbcTemplate, sqlQuery);
         }
 
         return "The input did not match the expected format.";
@@ -348,43 +316,56 @@ public class DatabaseService {
     }
 
     /**
-     * @param jdbcTemplate
-     * @param ssbResult
-     * @param tableName
-     * @return
+     * Inserts the data from a list into a table in the db.
+     *
+     * @param jdbcTemplate the jdbcTemplate with the database configuration
+     * @param ssbResult the list containing the data fetched from SSB
+     * @param tableName the name of the table to insert data into in the db
+     * @return the result of the insert or an error message
+     * @see #batchUpdateData(JdbcTemplate, List, String)
      */
-    private String runSqlStatement(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult, String tableName) {
+    private String insertData(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult, String tableName) {
         int maxNumberOfRows = 1000000;
+        String result="";
+
+        if (!checkValidTableName(tableName))
+            return "Not a valid table name.";
+
         if (ssbResult.size() > maxNumberOfRows) {
             int index;
             for (index = 0; index < ssbResult.size() / maxNumberOfRows; index++) {
                 List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index*maxNumberOfRows, (index + 1) * maxNumberOfRows);
 
-                batchUpdateData(jdbcTemplate, sublist, tableName);
+                result = batchUpdateData(jdbcTemplate, sublist, tableName);
+
+                if (!result.equals("OK"))
+                    return result;
             }
 
             if (ssbResult.size() % maxNumberOfRows > 0) {
                 List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index*maxNumberOfRows, ssbResult.size());
-                batchUpdateData(jdbcTemplate, sublist, tableName);
+                result = batchUpdateData(jdbcTemplate, sublist, tableName);
             }
-        } else {
-            batchUpdateData(jdbcTemplate, ssbResult, tableName);
-        }
 
-        return "OK";
+            return result;
+        } else {
+            return batchUpdateData(jdbcTemplate, ssbResult, tableName);
+        }
     }
 
     /**
-     * @param jdbcTemplate
-     * @param ssbResult
-     * @param tableName
-     * @return
+     * Inserts data from the list into the table with corresponding table name in the database
+     *
+     * @param jdbcTemplate the jdbcTemplate with the database configuration
+     * @param ssbResult the list containing the data fetched from SSB
+     * @param tableName the name of the table to insert data into
+     * @return "OK"
      */
     private String batchUpdateData(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult,
                                    String tableName) {
         StopWatch timer = new StopWatch();
         String valuesParam = "";
-        StringBuilder s = new StringBuilder();
+
         for (String[] sa: ssbResult.get(0).keySet()) {
             for (int i = 0; i < sa.length; i++) {
                 valuesParam += "?,";
