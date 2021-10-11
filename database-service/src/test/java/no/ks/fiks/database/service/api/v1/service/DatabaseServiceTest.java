@@ -22,18 +22,19 @@ class DatabaseServiceTest {
     private SqlConfiguration sqlConfig;
 
     private DatabaseService dbs;
-    private String validTableName, validSchemaName, expectedResultString, inputString, validDest,
-            validPersistingTableName, validPersistingDest;
-    private String validPersistingTableNameMultipleColumns;
+    private String validTableName;
+    private String validSchemaName;
+    private String validDest;
+    private String validPersistingDest;
     private String validPersistingDestMultipleColumn;
 
     @BeforeEach
     void setUp() {
+        String validPersistingTableName = "one_column";
+        String validPersistingTableNameMultipleColumns = "multiple_column";
         dbs = new DatabaseService(sqlConfig);
         validSchemaName = sqlConfig.getSchemaName();
         validTableName = "toto";
-        validPersistingTableName = "one_column";
-        validPersistingTableNameMultipleColumns = "multiple_column";
 
         validDest = validSchemaName + "." + validTableName;
         validPersistingDest = validSchemaName + "." + validPersistingTableName;
@@ -53,8 +54,8 @@ class DatabaseServiceTest {
     @Test
     void testIncorrectSyntaxOnInputString() {
         // Missing a ) at the end to have the correct syntax
-        inputString = "create table " + validDest + " (Regionkode varchar(100)";
-        expectedResultString = "SQL Error: 102. Incorrect syntax near ')'.";
+        String inputString = "create table " + validDest + " (Regionkode varchar(100)";
+        String expectedResultString = "SQL Error: 102. Incorrect syntax near ')'.";
 
         assertEquals(expectedResultString, dbs.runSqlStatement(jdbcTemplate, inputString));
     }
@@ -135,25 +136,6 @@ class DatabaseServiceTest {
     void testUseOfProtectedWord() {
         assertFalse(dbs.checkValidTableName(validSchemaName + "." + "SELECT"));
         assertFalse(dbs.checkValidTableName(validSchemaName + "." + "select"));
-    }
-
-    @Test
-    void testValidInsertData() {
-        String sqlQuery = "insert into ssbks.inst values (5)";
-
-        dbs.runSqlStatement(jdbcTemplate, "drop table ssbks.inst");
-        dbs.runSqlStatement(jdbcTemplate, "create table ssbks.inst ([Regionkode] varchar (10))");
-
-        assertEquals("OK", dbs.checkQuery(jdbcTemplate, sqlQuery));
-    }
-
-
-    @Test
-    void testInsertDataInvalidTableName() {
-        String sqlQuery = "insert into dbo.test values (5)";
-        dbs.runSqlStatement(jdbcTemplate, "create table dbo.test ([Regionkode] int)");
-
-        assertEquals("Not a valid destination name.", dbs.checkQuery(jdbcTemplate, sqlQuery));
     }
 
 }

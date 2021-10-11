@@ -28,10 +28,6 @@ class DatabaseServiceControllerTest {
     }
 
     @Test
-    void test1() {
-    }
-
-    @Test
     void createValidTableWithOnlyTableCode() {
         assertEquals("OK", dbsc.createTable(
                 "{\"tableCode\":\"11814\"}"
@@ -61,9 +57,13 @@ class DatabaseServiceControllerTest {
 
     @Test
     void dropTable() {
+        dbsc.createTable("{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}");
+        assertEquals("OK", dbsc.dropTable("11805"));
     }
 
     @Test
-    void trunacteTable() {
+    void truncateTable() {
+        dbsc.createTable("{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}");
+        assertEquals("OK", dbsc.truncateTable("11805"));
     }
 }

@@ -40,7 +40,6 @@ public class DatabaseService {
         schemaName = sqlConfig.getSchemaName();
 
         tableNameRegex = "((\\[\\w+\\]|(\\w+))\\.(\\[\\w+\\]|\\w+))";
-
         varcharRegex = "\\[varchar\\] \\(\\d+\\)";
         intRegex = "\\[int\\]";
         numericRegex = "\\[numeric\\] \\(\\d+\\,\\d+\\)";
@@ -69,13 +68,10 @@ public class DatabaseService {
      * @see #checkAndRunDropTruncateQuery(JdbcTemplate, String)
      */
     public String checkQuery(JdbcTemplate jdbcTemplate, String sqlQuery) {
-
         if (sqlQuery.matches(createQueryRegex)) {
             return checkAndRunCreateQuery(jdbcTemplate, sqlQuery);
-
         } else if (sqlQuery.matches(dropTruncateQueryRegex)) {
             return checkAndRunDropTruncateQuery(jdbcTemplate, sqlQuery);
-
         }
 
         return "Not a valid structure on query.";

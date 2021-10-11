@@ -22,40 +22,30 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/v1")
 public class DatabaseServiceController {
-    private SsbApiCall sac;
-    private InsertTableService its;
-
     private final JdbcTemplate jdbcTemplate;
 
-    private DatabaseService dbs = new DatabaseService(new SqlConfiguration());
+    private final DatabaseService dbs = new DatabaseService(new SqlConfiguration());
 
     public DatabaseServiceController(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     /**
-     * @return
-     */
-    @GetMapping("/test")
-    public String test() {
-        return "yep";
-    }
-
-    /**
-     * @param createString
-     * @return
+     * @param createString the table code of the table to be created
+     * @return result of running the create query
      */
     @PostMapping("/create-table")
     public String createTable(@Valid @RequestBody String createString) {
-        String tableName, query, columnDeclarations;
+        SsbApiCall sac;
+        String tableName, query, columnDeclarations, result;
         Map<String, List<String>> filters;
-        String result;
 
         try {
+            System.out.println("Create table: " + getTableCode(createString));
             tableName = "ssbks.SSB_" + getTableCode(createString);
 
-            sac = new SsbApiCall(getTableCode(createString), getNumberOfYears(createString),
-                    "131","104", "214", "231", "127");
+             sac = new SsbApiCall(getTableCode(createString), getNumberOfYears(createString),
+                    "131", "104", "214", "231", "127");
             filters = getFilters(createString);
 
             if (filters != null)
@@ -67,10 +57,7 @@ public class DatabaseServiceController {
 
             //drop the table in case it already exists
             query = String.format("drop table %s", tableName);
-            result = dbs.checkQuery(jdbcTemplate, query);
-
-            if (!result.equals("OK"))
-                return result;
+            dbs.checkQuery(jdbcTemplate, query);
 
             //create the table in the db
             query = String.format("create table %s (%s, [Verdi] [numeric] (18,1))", tableName, columnDeclarations);
@@ -79,7 +66,7 @@ public class DatabaseServiceController {
             if (!result.equals("OK"))
                 return result;
 
-            its = new InsertTableService();
+            InsertTableService its = new InsertTableService();
 
             System.out.println("Fetching data");
             List<String> jsonStatQuery = sac.tableApiCall();
@@ -96,21 +83,25 @@ public class DatabaseServiceController {
     }
 
     /**
-     * @param dropTable
-     * @return
+     * @param dropTable the table code of the table to be dropped
+     * @return result of running the truncate query
+     * @see DatabaseService
      */
     @PostMapping("/drop-table")
     public String dropTable(@Valid @RequestBody String dropTable) {
-        return dbs.checkQuery(jdbcTemplate, dropTable);
+        String dropQuery = String.format("drop table ssbks.[SSB_%s]", dropTable);
+        return dbs.checkQuery(jdbcTemplate, dropQuery);
     }
 
     /**
-     * @param truncateTable
-     * @return
+     * @param truncateTable the table code of the table to be truncated
+     * @return result of running the truncate query
+     * @see DatabaseService
      */
     @PostMapping("/truncate-table")
     public String truncateTable(@Valid @RequestBody String truncateTable) {
-        return dbs.checkQuery(jdbcTemplate, truncateTable);
+        String truncateQuery = String.format("truncate table ssbks.[SSB_%s]", truncateTable);
+        return dbs.checkQuery(jdbcTemplate, truncateQuery);
     }
 
     /**
@@ -118,7 +109,7 @@ public class DatabaseServiceController {
      *
      * @param createString the json string
      * @return the value of tableCode as text
-     * @throws JsonProcessingException
+     * @throws JsonProcessingException if something went wrong with processing the json
      */
     private String getTableCode(String createString) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
@@ -136,7 +127,7 @@ public class DatabaseServiceController {
      *
      * @param createString the json string
      * @return the numberOfYears value as int
-     * @throws JsonProcessingException
+     * @throws JsonProcessingException if something went wrong with processing the json
      */
     private int getNumberOfYears(String createString) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
@@ -153,13 +144,13 @@ public class DatabaseServiceController {
      *
      * @param createString the json string
      * @return the map containing the values of the filters field
-     * @throws JsonProcessingException
+     * @throws JsonProcessingException if something went wrong with processing the json
      */
     private Map<String, List<String>> getFilters(String createString) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode actualObj = mapper.readTree(createString);
 
-        Map<String, List<String>> filterMap = new HashMap<String, List<String>>();
+        Map<String, List<String>> filterMap = new HashMap<>();
 
         if (actualObj.get("filters") == null)
             return null;
@@ -179,8 +170,8 @@ public class DatabaseServiceController {
      * Creates the column declarations needed for the create query based on the metadata provided.
      *
      * For each metadata code in the metadata fetched creates a pair of columns on the form:
-     * [[metadata name]navn] [varchar] (largestvalue)
-     * [[metadata name]kode] [varchar] (largestvalue)
+     * [[metadata name]navn] [varchar] (largestValue)
+     * [[metadata name]kode] [varchar] (largestValue)
      * e.g
      * [Regionkode] [varchar] (5)
      * [Regionnavn] [varchar] (24)
@@ -191,33 +182,29 @@ public class DatabaseServiceController {
      * @return the column declarations on the mentioned form
      */
     private String createColumnDeclarations(SsbMetadata metadata) {
-        String columnDeclarations ="";
+        StringBuilder columnDeclarations = new StringBuilder();
 
         Iterator<SsbMetadataVariables> iterator = metadata.getVariables().iterator();
 
         while (iterator.hasNext()) {
             SsbMetadataVariables smv = iterator.next();
-            switch (smv.getCode()) {
-                case "Tid" -> {
-                    columnDeclarations += String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(smv.getCode()),
-                            smv.getLargestValue());
-                    columnDeclarations += String.format("[%snavn] [varchar] (%s)", StringUtils.capitalize(smv.getCode()),
-                            smv.getLargestValueText());
-                    break;
-                }
-                default -> {
-                    columnDeclarations += String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(smv.getText()),
-                            smv.getLargestValue());
-                    columnDeclarations += String.format("[%snavn] [varchar] (%s)", StringUtils.capitalize(smv.getText()),
-                            smv.getLargestValueText());
-                    break;
-                }
+
+            if (smv.getCode().equals("Tid")) {
+                columnDeclarations.append(String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(smv.getCode()),
+                        smv.getLargestValue()));
+                columnDeclarations.append(String.format("[%snavn] [varchar] (%s)", StringUtils.capitalize(smv.getCode()),
+                        smv.getLargestValueText()));
+            } else {
+                columnDeclarations.append(String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(smv.getText()),
+                        smv.getLargestValue()));
+                columnDeclarations.append(String.format("[%snavn] [varchar] (%s)", StringUtils.capitalize(smv.getText()),
+                        smv.getLargestValueText()));
             }
 
             if (iterator.hasNext()) {
-                columnDeclarations += ", ";
+                columnDeclarations.append(", ");
             }
         }
-        return columnDeclarations;
+        return columnDeclarations.toString();
     }
 }
