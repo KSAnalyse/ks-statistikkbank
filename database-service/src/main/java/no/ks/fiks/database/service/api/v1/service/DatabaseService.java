@@ -78,16 +78,6 @@ public class DatabaseService {
     }
 
     /**
-     * @param jdbcTemplate
-     * @param ssbResult
-     * @param tableName
-     * @return
-     */
-    public String checkQuery(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult, String tableName) {
-        return insertData(jdbcTemplate, ssbResult, tableName);
-    }
-
-    /**
      * Checks if the sql query is valid before running it
      *
      * @param jdbcTemplate the jdbcTemplate containing all the connection info
@@ -320,7 +310,7 @@ public class DatabaseService {
      * @return the result of the insert or an error message
      * @see #batchUpdateData(JdbcTemplate, List, String)
      */
-    private String insertData(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult, String tableName) {
+    public String insertData(JdbcTemplate jdbcTemplate, List<Map<String[], BigDecimal>> ssbResult, String tableName) {
         int maxNumberOfRows = 1000000;
         String result="";
 
