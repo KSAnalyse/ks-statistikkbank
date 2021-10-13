@@ -23,11 +23,13 @@ import java.util.*;
 @RequestMapping("/api/v1")
 public class DatabaseServiceController {
     private final JdbcTemplate jdbcTemplate;
-
-    private final DatabaseService dbs = new DatabaseService(new SqlConfiguration());
+    private final SqlConfiguration config;
+    private final DatabaseService dbs;
 
     public DatabaseServiceController(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        config = new SqlConfiguration();
+        dbs = new DatabaseService(config);
     }
 
     /**
@@ -42,12 +44,13 @@ public class DatabaseServiceController {
 
         try {
             System.out.println("Create table: " + getTableCode(createString));
-            tableName = "ssbks.SSB_" + getTableCode(createString);
+            tableName = String.format("%s.SSB_%s", config.getSchemaName(), getTableCode(createString));
 
-             sac = new SsbApiCall(getTableCode(createString), getNumberOfYears(createString),
+            sac = new SsbApiCall(getTableCode(createString), getNumberOfYears(createString),
                     "131", "104", "214", "231", "127");
             filters = getFilters(createString);
 
+            //if there are specified filters then apply them else get the metadata
             if (filters != null)
                 sac.metadataApiCall(filters, false);
             else
@@ -63,18 +66,11 @@ public class DatabaseServiceController {
             query = String.format("create table %s (%s, [Verdi] [numeric] (18,1))", tableName, columnDeclarations);
             result = dbs.checkQuery(jdbcTemplate, query);
 
+            //something went wrong while creating the table so need
             if (!result.equals("OK"))
                 return result;
 
-            InsertTableService its = new InsertTableService();
-
-            System.out.println("Fetching data");
-            List<String> jsonStatQuery = sac.tableApiCall();
-
-            System.out.println("Structuring the json data");
-            List<Map<String[], BigDecimal>> ssbResult = its.structureJsonStatTable(jsonStatQuery);
-
-            return dbs.checkQuery(jdbcTemplate, ssbResult, tableName);
+            return insertData(sac, tableName);
 
         } catch (IOException ie) {
             return("IOException in createTable.");
@@ -89,7 +85,7 @@ public class DatabaseServiceController {
      */
     @PostMapping("/drop-table")
     public String dropTable(@Valid @RequestBody String dropTable) {
-        String dropQuery = String.format("drop table ssbks.[SSB_%s]", dropTable);
+        String dropQuery = String.format("drop table %s.[SSB_%s]", config.getSchemaName(), dropTable);
         return dbs.checkQuery(jdbcTemplate, dropQuery);
     }
 
@@ -100,7 +96,7 @@ public class DatabaseServiceController {
      */
     @PostMapping("/truncate-table")
     public String truncateTable(@Valid @RequestBody String truncateTable) {
-        String truncateQuery = String.format("truncate table ssbks.[SSB_%s]", truncateTable);
+        String truncateQuery = String.format("truncate table %s.[SSB_%s]", config.getSchemaName(), truncateTable);
         return dbs.checkQuery(jdbcTemplate, truncateQuery);
     }
 
@@ -206,5 +202,20 @@ public class DatabaseServiceController {
             }
         }
         return columnDeclarations.toString();
+    }
+
+    private String insertData(SsbApiCall sac, String tableName) {
+        InsertTableService its = new InsertTableService();
+        try {
+            System.out.println("Fetching data");
+            List<String> jsonStatQuery = sac.tableApiCall();
+
+            System.out.println("Structuring the json data");
+            List<Map<String[], BigDecimal>> ssbResult = its.structureJsonStatTable(jsonStatQuery);
+
+            return dbs.insertData(jdbcTemplate, ssbResult, tableName);
+        } catch (IOException ie) {
+            return "IOException in insertData";
+        }
     }
 }
