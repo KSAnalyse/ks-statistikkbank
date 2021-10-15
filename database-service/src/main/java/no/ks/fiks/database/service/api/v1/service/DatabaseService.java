@@ -291,6 +291,7 @@ public class DatabaseService {
             SQLException se = (SQLException) e.getRootCause();
 
             try {
+                assert se != null;
                 return "SQL Error: " + se.getErrorCode() + ". " + se.getMessage();
             } catch (NullPointerException npe) {
                 return "Something went wrong while getting the SQL error code";
@@ -357,6 +358,7 @@ public class DatabaseService {
                 valuesParam += "?,";
             }
         }
+        //TODO
         valuesParam += "?";
 
         System.out.println("batchUpdate -> Starting");

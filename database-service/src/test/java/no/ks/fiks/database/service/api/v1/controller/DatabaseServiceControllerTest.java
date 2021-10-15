@@ -56,6 +56,20 @@ class DatabaseServiceControllerTest {
     }
 
     @Test
+    void createNonExistingTable() {
+        assertEquals("[ERROR] Status code from exception: 400", dbsc.createTable(
+                "{\"tableCode\":\"00001\",\"numberOfYears\":\"1\"}"
+        ));
+    }
+
+    @Test
+    void createTableWithEmptyJsonExistingTable() {
+        assertEquals("[ERROR] The json doesn't have the tableCode field.", dbsc.createTable(
+                "{}"
+        ));
+    }
+
+    @Test
     void dropTable() {
         dbsc.createTable("{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}");
         assertEquals("OK", dbsc.dropTable("11805"));

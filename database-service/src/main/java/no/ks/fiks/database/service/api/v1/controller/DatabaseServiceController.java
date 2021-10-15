@@ -18,6 +18,8 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -38,23 +40,34 @@ public class DatabaseServiceController {
      */
     @PostMapping("/create-table")
     public String createTable(@Valid @RequestBody String createString) {
-        SsbApiCall sac;
-        String tableName, query, columnDeclarations, result;
+        String tableName, query, columnDeclarations, result, tableCode;
+        int numberOfYears;
         Map<String, List<String>> filters;
+        SsbApiCall sac;
 
         try {
             System.out.println("Create table: " + getTableCode(createString));
-            tableName = String.format("%s.SSB_%s", config.getSchemaName(), getTableCode(createString));
 
-            sac = new SsbApiCall(getTableCode(createString), getNumberOfYears(createString),
+            tableCode = getTableCode(createString);
+            numberOfYears = getNumberOfYears(createString);
+
+            if (tableCode == null)
+                return "[ERROR] The json doesn't have the tableCode field.";
+
+            tableName = String.format("%s.SSB_%s", config.getSchemaName(), tableCode);
+
+            sac = new SsbApiCall(tableCode, numberOfYears,
                     "131", "104", "214", "231", "127");
             filters = getFilters(createString);
 
-            //if there are specified filters then apply them else get the metadata
+            // If there are specified filters then apply them else get the metadata
             if (filters != null)
                 sac.metadataApiCall(filters, false);
             else
-                sac.metadataApiCall(getTableCode(createString));
+                sac.metadataApiCall(tableCode);
+
+            if (sac.getMetadata() == null)
+                return "Something went wrong while getting the metadata.";
 
             columnDeclarations = createColumnDeclarations(sac.getMetadata());
 
@@ -73,7 +86,19 @@ public class DatabaseServiceController {
             return insertData(sac, tableName);
 
         } catch (IOException ie) {
-            return("IOException in createTable.");
+            String errorMessage;
+            Matcher matcher = Pattern.compile("^Server returned HTTP response code: (\\d+)").matcher(ie.getMessage());
+
+            if (matcher.find()) {
+                errorMessage = "[ERROR] Status code from exception: " + Integer.parseInt(matcher.group(1));
+            } else if (ie.getClass().getSimpleName().equals("FileNotFoundException")) {
+                // 404 will throw a FileNotFoundException
+                errorMessage = "[ERROR] Status code from exception: 404";
+            } else {
+                errorMessage = "[ERROR] " + ie.getClass().getSimpleName() + " exception when creating table.";
+            }
+
+            return(errorMessage);
         }
 
     }
@@ -102,9 +127,9 @@ public class DatabaseServiceController {
 
     /**
      * Gets the value of the tableCode field in the json string provided.
-     *
+     * If tableCode aren't specified then returns null.
      * @param createString the json string
-     * @return the value of tableCode as text
+     * @return the value of tableCode as text or null if it doesn't exist
      * @throws JsonProcessingException if something went wrong with processing the json
      */
     private String getTableCode(String createString) throws JsonProcessingException {
@@ -120,9 +145,9 @@ public class DatabaseServiceController {
 
     /**
      * Gets the value of the numberOfYears field in the json string provided.
-     *
+     * If numberOfYears aren't specified then returns 5.
      * @param createString the json string
-     * @return the numberOfYears value as int
+     * @return the numberOfYears value as int or 5 if it is non-existing
      * @throws JsonProcessingException if something went wrong with processing the json
      */
     private int getNumberOfYears(String createString) throws JsonProcessingException {
@@ -137,9 +162,10 @@ public class DatabaseServiceController {
 
     /**
      * Gets the value of the filters field in the json string provided and returns it as a map.
+     * If the filters field doesn't have any values returns null.
      *
      * @param createString the json string
-     * @return the map containing the values of the filters field
+     * @return the map containing the values of the filters field or null if no filters are specified
      * @throws JsonProcessingException if something went wrong with processing the json
      */
     private Map<String, List<String>> getFilters(String createString) throws JsonProcessingException {
