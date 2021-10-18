@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="scheduler" />
+        <module name="data-fetcher" />
         <module name="database-service" />
       </profile>
     </annotationProcessing>

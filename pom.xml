@@ -11,6 +11,7 @@
     <modules>
         <module>database-service</module>
         <module>scheduler</module>
+        <module>data-fetcher</module>
     </modules>
 
     <dependencies>
