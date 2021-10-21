@@ -61,6 +61,13 @@
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>no.ks.fiks</groupId>
+            <artifactId>ks-json-stat.java</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/src/main/resources/ks-json-stat.java.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <build>

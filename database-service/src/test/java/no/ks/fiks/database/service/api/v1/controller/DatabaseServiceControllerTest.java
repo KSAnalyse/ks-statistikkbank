@@ -46,7 +46,7 @@ class DatabaseServiceControllerTest {
     }
 
      */
-
+    /*
     @Test
     void createValidTableWithAllYears() {
         assertEquals("OK", dbsc.createTable(
@@ -74,7 +74,8 @@ class DatabaseServiceControllerTest {
                 "{}"
         ));
     }
-
+*/
+    /*
     @Test
     void dropTable() {
         dbsc.createTable("{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}");
@@ -86,4 +87,5 @@ class DatabaseServiceControllerTest {
         dbsc.createTable("{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}");
         assertEquals("OK", dbsc.truncateTable("11805"));
     }
+    */
 }
