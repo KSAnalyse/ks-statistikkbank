@@ -93,7 +93,6 @@ public class DataFetcherService {
     public String dropTable(String jsonPayload) {
         String dropQuery = String.format("drop table %s.[SSB_%s]", config.getSchemaName(), getTableCode(jsonPayload));
         return dbsc.dropTable(dropQuery);
-
     }
 
     public String truncateTable(String jsonPayload) {
@@ -243,7 +242,11 @@ public class DataFetcherService {
         try {
             sac = new SsbApiCall(tableCode, numberOfYears,
                     "131", "104", "214", "231", "127");
-            sac.metadataApiCall(filters, false);
+
+            if (filters != null)
+                sac.metadataApiCall(filters, false);
+            else
+                sac.metadataApiCall(tableCode);
 
             return sac;
         } catch (IOException ie) {
@@ -251,14 +254,13 @@ public class DataFetcherService {
             Matcher matcher = Pattern.compile("^Server returned HTTP response code: (\\d+)").matcher(ie.getMessage());
 
             if (matcher.find()) {
-                errorMessage = "[ERROR] Status code from exception: " + Integer.parseInt(matcher.group(1));
+                System.out.println("[ERROR] Status code from exception: " + Integer.parseInt(matcher.group(1)));
             } else if (ie.getClass().getSimpleName().equals("FileNotFoundException")) {
                 // 404 will throw a FileNotFoundException
-                errorMessage = "[ERROR] Status code from exception: 404";
+                System.out.println("[ERROR] Status code from exception: 404");
             } else {
-                errorMessage = "[ERROR] " + ie.getClass().getSimpleName() + " exception when creating table.";
+                System.out.println("[ERROR] " + ie.getClass().getSimpleName() + " exception when creating table.");
             }
-            System.out.println(errorMessage);
 
             return null;
         }

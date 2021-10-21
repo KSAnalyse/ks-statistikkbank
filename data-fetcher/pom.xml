@@ -21,6 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>15</maven.compiler.source>
         <maven.compiler.target>15</maven.compiler.target>
+        <microsoft.sqlserver.version>9.2.1.jre15</microsoft.sqlserver.version>
     </properties>
 
     <dependencies>
@@ -29,6 +30,11 @@
             <artifactId>spring-boot-autoconfigure</artifactId>
             <version>${spring.boot.version}</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>${microsoft.sqlserver.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
