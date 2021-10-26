@@ -12,8 +12,9 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="innhenting-ssb-data" target="1.7" />
-      <module name="innhenting-ssb-klass" target="1.7" />
+      <module name="data-fetcher" target="15" />
+      <module name="innhenting-ssb-data" target="15" />
+      <module name="innhenting-ssb-klass" target="15" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
