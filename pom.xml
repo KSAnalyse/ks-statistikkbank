@@ -12,7 +12,6 @@
         <module>database-service</module>
         <module>data-fetcher</module>
     </modules>
-
     <dependencies>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -36,6 +35,18 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <version>2.3.12.RELEASE</version>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.directory.studio</groupId>
+            <artifactId>org.apache.commons.io</artifactId>
+            <version>2.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.13.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>no.ks.fiks</groupId>
