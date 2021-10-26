@@ -40,6 +40,7 @@
     </dependencies>
 
     <properties>
+        <main.basedir>${project.basedir}</main.basedir>
         <maven.compiler.source>15</maven.compiler.source>
         <maven.compiler.target>15</maven.compiler.target>
         <junit-jupiter.version>5.7.2</junit-jupiter.version>
