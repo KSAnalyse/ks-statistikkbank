@@ -1,8 +1,8 @@
-package no.ks.fiks.api.v1.scheduler;
+package no.ks.fiks.data.fetcher.api.v1.scheduler;
 
-import no.ks.fiks.csvreader.CsvReader;
+import no.ks.fiks.data.fetcher.csvreader.CsvReader;
 import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
-import no.ks.fiks.tableinfo.TableFilterAndGroups;
+import no.ks.fiks.data.fetcher.tableinfo.TableFilterAndGroups;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 

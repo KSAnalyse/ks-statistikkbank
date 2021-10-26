@@ -1,6 +1,6 @@
-package no.ks.fiks.csvreader;
+package no.ks.fiks.data.fetcher.csvreader;
 
-import no.ks.fiks.tableinfo.TableFilterAndGroups;
+import no.ks.fiks.data.fetcher.tableinfo.TableFilterAndGroups;
 
 import java.io.File;
 import java.io.FileNotFoundException;

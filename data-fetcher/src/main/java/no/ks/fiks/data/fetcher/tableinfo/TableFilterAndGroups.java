@@ -1,4 +1,4 @@
-package no.ks.fiks.tableinfo;
+package no.ks.fiks.data.fetcher.tableinfo;
 
 import java.util.*;
 
