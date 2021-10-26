@@ -1,8 +1,8 @@
 package no.ks.fiks.data.fetcher.api.v1.scheduler;
 
 import no.ks.fiks.data.fetcher.csvreader.CsvReader;
-import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
 import no.ks.fiks.data.fetcher.tableinfo.TableFilterAndGroups;
+import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 
@@ -30,28 +30,29 @@ public class Scheduler {
 
     public void runApiCall() {
 
+        SsbApiCall ssbApiCall;
         for (TableFilterAndGroups s : tableFilterAndGroups) {
+            ssbApiCall = new SsbApiCall(s.getTabellnummer(), 5, "131", "104", "214", "231", "127");
             if (!s.getTabellnummer().equals("11211"))
-                taskExecutor.execute(new SsbApiCallTask(s.getTabellnummer()));
+                taskExecutor.execute(new SsbApiCallTask(ssbApiCall));
         }
     }
 
     private static class SsbApiCallTask implements Runnable {
 
-        private String tablenumber;
-        private SsbApiCall ssbApiCall;
+        private final SsbApiCall ssbApiCall;
 
-        public SsbApiCallTask(String tablenumber) {
-            this.tablenumber = tablenumber;
-            ssbApiCall = new SsbApiCall(tablenumber, 5, "131", "104", "214", "231", "127");
+        public SsbApiCallTask(SsbApiCall ssbApiCall) {
+            this.ssbApiCall = ssbApiCall;
         }
 
+        @Override
         public void run() {
             try {
+                System.out.println(ssbApiCall.getMetadata().getTitle() + " " + ssbApiCall.getQuerySize());
                 ssbApiCall.tableApiCall();
-                System.out.println(tablenumber + " " + ssbApiCall.getQuerySize());
             } catch (IOException e) {
-                System.err.println(tablenumber);
+                System.err.println(ssbApiCall.getMetadata().getTitle());
                 e.printStackTrace();
             }
         }
