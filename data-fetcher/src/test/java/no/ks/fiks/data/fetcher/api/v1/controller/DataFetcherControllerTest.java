@@ -1,5 +1,8 @@
-package no.ks.fiks.database.service.api.v1.controller;
+package no.ks.fiks.data.fetcher.api.v1.controller;
 
+import no.ks.fiks.database.service.api.v1.config.SqlConfiguration;
+import no.ks.fiks.database.service.api.v1.controller.DatabaseServiceController;
+import no.ks.fiks.database.service.api.v1.service.DatabaseService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,82 +13,76 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-class DatabaseServiceControllerTest {
-
-    private DatabaseServiceController dbsc;
-
+class DataFetcherControllerTest {
     @Autowired
     private JdbcTemplate jdbc;
 
+    private DataFetcherController dfc;
+
     @BeforeEach
     void setUp() {
-        dbsc = new DatabaseServiceController(jdbc);
+        dfc = new DataFetcherController(jdbc);
     }
 
     @AfterEach
     void tearDown() {
-
     }
 
-    /*
     @Test
     void createValidTableWithOnlyTableCode() {
-        assertEquals("OK", dbsc.createTable(
+        dfc.dropTable("{\"tableCode\":\"11814\"}");
+        assertEquals("OK", dfc.createTable(
                 "{\"tableCode\":\"11814\"}"
         ));
     }
 
-     */
-
-    /*
     @Test
     void createValidTableWithOnlyYears() {
-        assertEquals("OK", dbsc.createTable(
+        dfc.dropTable("{\"tableCode\":\"11805\"}");
+        assertEquals("OK", dfc.createTable(
                 "{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}"
         ));
     }
 
-     */
-    /*
     @Test
     void createValidTableWithAllYears() {
-        assertEquals("OK", dbsc.createTable(
+        dfc.dropTable("{\"tableCode\":\"11805\"}");
+        assertEquals("OK", dfc.createTable(
                 "{\"tableCode\":\"11805\",\"numberOfYears\":\"-1\"}"
         ));
     }
 
     @Test
     void createBigValidTable() {
-        assertEquals("OK", dbsc.createTable(
+        dfc.dropTable("{\"tableCode\":\"12367\"}");
+        assertEquals("OK", dfc.createTable(
                 "{\"tableCode\":\"12367\",\"numberOfYears\":\"1\", \"filters\":[{\"code\":\"KOKregnskapsomfa0000\", \"values\":[\"B\"]}]}"
         ));
     }
 
     @Test
     void createNonExistingTable() {
-        assertEquals("[ERROR] Status code from exception: 400", dbsc.createTable(
+        assertEquals("[ERROR] Something went wrong while fetching the SsbApiCall data.", dfc.createTable(
                 "{\"tableCode\":\"00001\",\"numberOfYears\":\"1\"}"
         ));
     }
 
     @Test
     void createTableWithEmptyJsonExistingTable() {
-        assertEquals("[ERROR] The json doesn't have the tableCode field.", dbsc.createTable(
+        assertEquals("[ERROR] The json doesn't have the tableCode field.", dfc.createTable(
                 "{}"
         ));
     }
-*/
-    /*
+
     @Test
     void dropTable() {
-        dbsc.createTable("{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}");
-        assertEquals("OK", dbsc.dropTable("11805"));
+        dfc.createTable("{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}");
+        assertEquals("OK", dfc.dropTable("{\"tableCode\":\"11805\"}"));
     }
 
     @Test
     void truncateTable() {
-        dbsc.createTable("{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}");
-        assertEquals("OK", dbsc.truncateTable("11805"));
+        dfc.createTable("{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}");
+        assertEquals("OK", dfc.truncateTable("{\"tableCode\":\"11805\"}"));
     }
-    */
 }
