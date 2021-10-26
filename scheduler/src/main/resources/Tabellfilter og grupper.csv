@@ -1,0 +1,76 @@
+﻿Kildeid;Tabellnummer;Gruppe;Lag Tabell Filter;Hent Data Filter
+SSB;05939;Byggesak;Byggeareal=None;Byggeareal=None
+SSB;08655;Byggesak;Add=Regionkode:4;PersonellUtd=25,26,34
+SSB;09345;Barnehage;;
+SSB;11211;Areal- og samfunnsplanlegging;;
+SSB;11805;Felles;;
+SSB;11814;Samferdsel;;
+SSB;11816;Samferdsel;;
+SSB;11820;Felles;;ContentsCode=KOSpersoner0000
+SSB;11845;Samferdsel;;
+SSB;11875;PLO;;
+SSB;11906;Eiendomsforvaltning;;ContentsCode=KOSARBAARSVERKST0000
+SSB;11924;PLO;;ContentsCode!=KOSandelenerom0000,KOSandbrtpenerom0000
+SSB;11933;PLO;;ContentsCode!=KOSelevpergrskol0000
+SSB;11971;Grunnskole;;
+SSB;11974;Grunnskole;;ContentsCode!=KOSandsfo69k0000,KOSandsfo69kp0000
+SSB;11975;Grunnskole;;
+SSB;11977;Grunnskole;;ContentsCode=KOSantallbarn0001
+SSB;11993;Kommunehelsetjenesten;;ContentsCode=KOSavtalteaarsve0000
+SSB;11994;Kommunehelsetjenesten;;ContentsCode=KOSfysioaarsverk0001
+SSB;11995;Kommunehelsetjenesten;;ContentsCode=KOSlegeaarsverk0000
+SSB;11996;Kommunehelsetjenesten;;ContentsCode=KOSomsorgantbruk0000
+SSB;12003;PLO;;ContentsCode!=KOSandelpasiente0000,KOSandelkvinnele0000
+SSB;12005;Kommunehelsetjenesten;;KOKeierforhold0000=1,4,5&ContentsCode=KOSoppholdsareal0000,KOSbhgbarn0000
+SSB;12055;Barnehage;;
+SSB;12056;Barnehage;;
+SSB;12115;Barnevern;;KOKartbruk0000=AG99
+SSB;12129;Barnehage;;
+SSB;12150;Eiendomsforvaltning;;
+SSB;12151;Eiendomsforvaltning;;ContentsCode!=KOSalder18660000,KOSper10000000,KOSnettodriftsut0001,KOSnettodriftsut0000,KOSFolkemengdeia0000
+SSB;12160;Sosiale tjenester;;
+SSB;12183;Samferdsel;;ContentsCode=KOSmelding0000
+SSB;12189;Barnevern;;
+SSB;12191;Kommunehelsetjenesten;;
+SSB;12203;Sosiale tjenester;;
+SSB;12209;PLO;;
+SSB;12213;Sosiale tjenester;;ContentsCode=KOSkorrald0000,KOSkorrtid0000,KOSbasisaar0000
+SSB;12216;Barnehage;;ContentsCode!=KOSandelevspesu0000
+SSB;12222;Grunnskole;;
+SSB;12234;Grunnskole;;
+SSB;12236;Grunnskole;;
+SSB;12238;Barnevern;;ContentsCode=KOSantlarergrsk0000
+SSB;12247;Grunnskole;;ContentsCode=KOSbarn0000,KOSminspbhgbarn0000,KOSinnvbef150000
+SSB;12272;Barnehage;;ContentsCode=KOSbvbarntiltaka0000,KOSbvbarntiltak30001
+SSB;12275;Barnevern;;ContentsCode=KOSbvbarnhotilta0000,KOSbvbarnhotilta0002
+SSB;12276;Barnevern;;ContentsCode=KOSbdu244bvbarnu0000
+SSB;12279;Barnevern;;ContentsCode=KOSbehandlingsti0001,KOSbarnmtiltuspa0000
+SSB;12280;Barnevern;;ContentsCode=KOSantlarergrsk0000
+SSB;12282;Grunnskole;;ContentsCode!=KOSandtimsu0000,KOSandtimsk0000
+SSB;12285;Grunnskole;;ContentsCode=KOSbvbarnus0000
+SSB;12286;Barnevern;;
+SSB;12287;Barnevern;;
+SSB;12292;PLO;;
+SSB;12293;PLO;;
+SSB;12303;Byggesak;;ContentsCode!=KOSsumfagutd0000,KOSpersoner0170000
+SSB;12305;Barnevern;;
+SSB;12364;Økonomi;;
+SSB;12367;Økonomi;KOKregnskapsomfa0000=None;KOKregnskapsomfa0000=A
+SSB;12436;Barnehage;;
+SSB;12559;Eiendomsforvaltning;;ContentsCode=KOSbarnaav0000,KOSbhglgrunnb0000,KOSekstrakomm0000,KOSkorrtidkomm0000
+SSB;12562;Barnehage;;ContentsCode=KOSeierseksjoner0001
+SSB;12597;Byggesak;;
+SSB;12611;Byggesak;;
+SSB;12612;Byggesak;;ContentsCode=KOSbvbarnmelding0000
+SSB;12615;Barnevern;;
+SSB;12676;Byggesak;;
+SSB;12860;Barnevern;;
+SSB;12861;Barnevern;;
+SSB;12905;Eiendomsforvaltning;;KOKkjoenn0000!=0&ContentsCode=KOSantlarergrsk0000
+SSB;12919;Grunnskole;;
+SSB;13013;Byggesak;;
+SSB;13021;Byggesak;;
+SSB;13111;Byggesak;;
+SSB;13124;Byggesak;;
+SSB;13138;Sosiale tjenester;;
+SSB;13231;Eiendomsforvaltning;;
