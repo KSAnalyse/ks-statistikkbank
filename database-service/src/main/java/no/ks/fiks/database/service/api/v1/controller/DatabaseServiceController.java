@@ -1,8 +1,8 @@
 package no.ks.fiks.database.service.api.v1.controller;
 
-import no.ks.fiks.database.service.api.v1.config.SqlConfiguration;
 import no.ks.fiks.database.service.api.v1.service.DatabaseService;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,14 +14,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1")
 public class DatabaseServiceController {
-    private final JdbcTemplate jdbcTemplate;
-    private final SqlConfiguration config;
     private final DatabaseService dbs;
 
+
+    @Autowired
     public DatabaseServiceController(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-        config = new SqlConfiguration();
-        dbs = new DatabaseService(config);
+        dbs = new DatabaseService(jdbcTemplate);
     }
 
     /**
@@ -30,7 +28,7 @@ public class DatabaseServiceController {
      */
     @PostMapping("/create-table")
     public String createTable(@Valid @RequestBody String createString) {
-        return dbs.checkQuery(jdbcTemplate, createString);
+        return dbs.checkQuery(createString);
     }
 
     /**
@@ -40,7 +38,7 @@ public class DatabaseServiceController {
      */
     @PostMapping("/drop-table")
     public String dropTable(@Valid @RequestBody String dropTable) {
-        return dbs.checkQuery(jdbcTemplate, dropTable);
+        return dbs.checkQuery(dropTable);
     }
 
     /**
@@ -50,13 +48,13 @@ public class DatabaseServiceController {
      */
     @PostMapping("/truncate-table")
     public String truncateTable(@Valid @RequestBody String truncateTable) {
-        return dbs.checkQuery(jdbcTemplate, truncateTable);
+        return dbs.checkQuery(truncateTable);
     }
 
     public String insertData(@Valid @RequestBody List<Map<String[], BigDecimal>> dataResult,
                              String tableName) {
 
-        return dbs.insertData(jdbcTemplate, dataResult, tableName);
+        return dbs.insertData(dataResult, tableName);
     }
 
 
