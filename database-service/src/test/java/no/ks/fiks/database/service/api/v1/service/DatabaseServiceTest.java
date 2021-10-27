@@ -22,9 +22,11 @@ class DatabaseServiceTest {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
+    private DatabaseService dbs;
+
+    @Autowired
     private SqlConfiguration sqlConfig;
 
-    private DatabaseService dbs;
     private String validTableName;
     private String validSchemaName;
     private String validDest;
@@ -35,7 +37,7 @@ class DatabaseServiceTest {
     void setUp() {
         String validPersistingTableName = "one_column";
         String validPersistingTableNameMultipleColumns = "multiple_column";
-        dbs = new DatabaseService(jdbcTemplate);
+
         validSchemaName = sqlConfig.getSchemaName();
         validTableName = "toto";
 
