@@ -25,7 +25,6 @@ public class DatabaseService {
             tableNameRegex, schemaName;
 
     private final SqlConfiguration sqlConfig;
-
     private final JdbcTemplate jdbc;
 
     /**
@@ -274,6 +273,9 @@ public class DatabaseService {
                 return "Something went wrong while getting the SQL error code";
             }
         } catch (Exception e) {
+            System.out.println("Prob here?");
+            System.out.println(query);
+            System.out.println(jdbc.getDataSource());
             return e.getClass().getName();
         }
         return "OK";

@@ -49,12 +49,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
-            <version>${spring.boot.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>no.ks.fiks</groupId>
             <artifactId>database-service</artifactId>
             <version>1.0-SNAPSHOT</version>

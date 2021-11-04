@@ -1,7 +1,6 @@
 package no.ks.fiks.data.fetcher.api.v1.controller;
 
 import no.ks.fiks.data.fetcher.api.v1.service.DataFetcherService;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,12 +9,12 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1a")
 public class DataFetcherController {
-    private DataFetcherService dfs;
+    private final DataFetcherService dfs;
 
-    public DataFetcherController(JdbcTemplate jdbc) {
-        dfs = new DataFetcherService(jdbc);
+    public DataFetcherController() {
+        dfs = new DataFetcherService();
     }
 
     @PostMapping("/create-table")

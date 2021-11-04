@@ -10,7 +10,7 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 class SchedulerTest {
-
+    /*
     @Test
     public void printMessage() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
@@ -55,4 +55,6 @@ class SchedulerTest {
         test.stream().map((k) -> (k.getKildeId() + " " + k.getTabellnummer() + " " + k.getGruppenavn() + " " +
                 k.getLagTabellFilter() + " " + k.getHentDataFilter())).forEach(System.out::println);
     }
+
+     */
 }

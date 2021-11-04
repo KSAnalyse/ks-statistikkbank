@@ -6,27 +6,33 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import no.ks.fiks.Service.InsertTableService;
 import no.ks.fiks.database.service.api.v1.config.SqlConfiguration;
-import no.ks.fiks.database.service.api.v1.controller.DatabaseServiceController;
 import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadata;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadataVariables;
 
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.Buffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Service
 public class DataFetcherService {
     private final SqlConfiguration config;
-    private final DatabaseServiceController dbsc;
 
-    public DataFetcherService(JdbcTemplate jdbcTemplate) {
+    public DataFetcherService() {
         config = new SqlConfiguration();
-        dbsc = new DatabaseServiceController(jdbcTemplate);
     }
 
     public String createTable(String jsonPayload) {
@@ -54,8 +60,9 @@ public class DataFetcherService {
 
         //create the table in the db
         query = String.format("create table %s (%s, [Verdi] [numeric] (18,1))", tableName, columnDeclarations);
-        //result = dbs.checkQuery(jdbcTemplate, query);
-        result = dbsc.createTable(query);
+
+        System.out.println("apiCall test");
+        result = apiCall("create-table", query);
 
         return result;
     }
@@ -86,19 +93,22 @@ public class DataFetcherService {
 
         if (dataResult == null)
             return "[ERROR] Failed while fetching and structuring data.";
-
-        return dbsc.insertData(dataResult, tableName);
+        return "TODO";
+        //return dbsc.insertData(dataResult, tableName);
     }
 
     public String dropTable(String jsonPayload) {
         String dropQuery = String.format("drop table %s.[SSB_%s]", config.getSchemaName(), getTableCode(jsonPayload));
-        return dbsc.dropTable(dropQuery);
+        String result = apiCall("create-table", dropQuery);
+        return result;
     }
 
     public String truncateTable(String jsonPayload) {
         String truncateQuery = String.format("truncate table %s.[SSB_%s]", config.getSchemaName(), getTableCode(jsonPayload));
-        return dbsc.truncateTable(truncateQuery);
+        String result = apiCall("create-table", truncateQuery);
+        return result;
     }
+
 
     /**
      * Gets the value of the tableCode field in the json string provided.
@@ -250,7 +260,6 @@ public class DataFetcherService {
 
             return sac;
         } catch (IOException ie) {
-            String errorMessage;
             Matcher matcher = Pattern.compile("^Server returned HTTP response code: (\\d+)").matcher(ie.getMessage());
 
             if (matcher.find()) {
@@ -264,5 +273,48 @@ public class DataFetcherService {
 
             return null;
         }
+    }
+
+    private String apiCall(String endpoint, String payload) {
+        URL url = null;
+        try {
+            url = new URL("http://localhost:8080/api/v1/" + endpoint);
+
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json; utf-8");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setDoOutput(true);
+
+            OutputStream os = connection.getOutputStream();
+            byte[] input = payload.getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(),
+                    StandardCharsets.UTF_8));
+
+            String var9;
+
+            StringBuilder response = new StringBuilder();
+
+            while(true) {
+                String responseLine;
+                if ((responseLine = br.readLine()) == null) {
+                    var9 = response.toString();
+                    break;
+                }
+
+                response.append(responseLine.trim());
+            }
+
+            return var9;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+
     }
 }

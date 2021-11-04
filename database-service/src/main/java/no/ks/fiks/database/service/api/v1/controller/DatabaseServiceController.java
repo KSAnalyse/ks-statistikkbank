@@ -16,10 +16,14 @@ import java.util.Map;
 public class DatabaseServiceController {
     private final DatabaseService dbs;
 
-
     @Autowired
-    public DatabaseServiceController(JdbcTemplate jdbcTemplate) {
-        dbs = new DatabaseService(jdbcTemplate);
+    public DatabaseServiceController(JdbcTemplate jdbc) {
+        dbs = new DatabaseService(jdbc);
+    }
+
+    @GetMapping("/status")
+    public String runStatus() {
+        return "OK";
     }
 
     /**
