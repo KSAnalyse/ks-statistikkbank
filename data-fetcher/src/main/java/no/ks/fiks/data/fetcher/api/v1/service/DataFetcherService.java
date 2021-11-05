@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import no.ks.fiks.Service.InsertTableService;
 import no.ks.fiks.database.service.api.v1.config.SqlConfiguration;
 import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
@@ -61,7 +62,6 @@ public class DataFetcherService {
         //create the table in the db
         query = String.format("create table %s (%s, [Verdi] [numeric] (18,1))", tableName, columnDeclarations);
 
-        System.out.println("apiCall test");
         result = apiCall("create-table", query);
 
         return result;
@@ -93,19 +93,23 @@ public class DataFetcherService {
 
         if (dataResult == null)
             return "[ERROR] Failed while fetching and structuring data.";
-        return "TODO";
-        //return dbsc.insertData(dataResult, tableName);
+
+        String result ="";
+        for(String s: fetchSsbApiCallResult(sac)) {
+            result = apiCall("insert-data", createInsertJson(tableName, s));
+        }
+        return result;
     }
 
     public String dropTable(String jsonPayload) {
         String dropQuery = String.format("drop table %s.[SSB_%s]", config.getSchemaName(), getTableCode(jsonPayload));
-        String result = apiCall("create-table", dropQuery);
+        String result = apiCall("drop-table", dropQuery);
         return result;
     }
 
     public String truncateTable(String jsonPayload) {
         String truncateQuery = String.format("truncate table %s.[SSB_%s]", config.getSchemaName(), getTableCode(jsonPayload));
-        String result = apiCall("create-table", truncateQuery);
+        String result = apiCall("truncate-table", truncateQuery);
         return result;
     }
 
@@ -231,6 +235,24 @@ public class DataFetcherService {
         return columnDeclarations.toString();
     }
 
+    private String createInsertJson(String tableName, String queryResult) {
+        ObjectMapper om = new ObjectMapper();
+
+        try {
+            ObjectNode on = om.createObjectNode();
+            JsonNode resultData = om.readTree(queryResult);
+
+            on.put("tableName", tableName);
+            on.set("data", resultData);
+
+            return om.writeValueAsString(on);
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return "fail";
+        }
+    }
+
     private List<Map<String[], BigDecimal>> fetchAndStructureSsbApiCallResult(SsbApiCall sac) {
         InsertTableService its = new InsertTableService();
         try {
@@ -238,10 +260,19 @@ public class DataFetcherService {
             List<String> jsonStatQuery = sac.tableApiCall();
 
             System.out.println("Structuring the json data");
-
             return its.structureJsonStatTable(jsonStatQuery);
         } catch (IOException ie) {
             System.out.println("IOException in fetchAndStructureSsbApiCallResult.");
+            return null;
+        }
+    }
+
+    private List<String> fetchSsbApiCallResult(SsbApiCall sac) {
+        try {
+            System.out.println("Fetching data");
+            return sac.tableApiCall();
+        } catch (IOException ie) {
+            System.out.println("IOException in fetchSsbApiCallResult.");
             return null;
         }
     }
@@ -254,7 +285,7 @@ public class DataFetcherService {
                     "131", "104", "214", "231", "127");
 
             if (filters != null)
-                sac.metadataApiCall(filters, false);
+                sac.metadataApiCall(filters, true);
             else
                 sac.metadataApiCall(tableCode);
 
@@ -306,6 +337,7 @@ public class DataFetcherService {
 
                 response.append(responseLine.trim());
             }
+            connection.disconnect();
 
             return var9;
         } catch (MalformedURLException e) {

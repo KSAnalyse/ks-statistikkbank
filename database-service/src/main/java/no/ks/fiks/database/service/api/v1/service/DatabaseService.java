@@ -289,14 +289,10 @@ public class DatabaseService {
     public String convertJsonToInsertQuery(String json) {
         InsertTableService its = new InsertTableService();
         ObjectMapper om = new ObjectMapper();
-        System.out.println("JSON");
-        System.out.println(json);
+
         try {
             JsonNode jn = om.readTree(json);
             String tableName = jn.get("tableName").asText();
-            System.out.println("Table name: " + tableName);
-
-            System.out.println("Data: " + om.writeValueAsString(jn.get("data")));
 
             if (tableName == null)
                 return "[Error] Missing field tableName.";
