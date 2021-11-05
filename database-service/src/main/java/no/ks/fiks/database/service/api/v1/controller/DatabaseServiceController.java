@@ -55,10 +55,10 @@ public class DatabaseServiceController {
         return dbs.checkQuery(truncateTable);
     }
 
-    public String insertData(@Valid @RequestBody List<Map<String[], BigDecimal>> dataResult,
-                             String tableName) {
+    @PostMapping("/insert-data")
+    public String insertData(@Valid @RequestBody String json) {
 
-        return dbs.insertData(dataResult, tableName);
+        return dbs.convertJsonToInsertQuery(json);
     }
 
 

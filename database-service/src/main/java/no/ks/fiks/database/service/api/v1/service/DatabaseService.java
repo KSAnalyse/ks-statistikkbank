@@ -1,5 +1,9 @@
 package no.ks.fiks.database.service.api.v1.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import no.ks.fiks.Service.InsertTableService;
 import no.ks.fiks.database.service.api.v1.config.SqlConfiguration;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -279,6 +284,36 @@ public class DatabaseService {
             return e.getClass().getName();
         }
         return "OK";
+    }
+
+    public String convertJsonToInsertQuery(String json) {
+        InsertTableService its = new InsertTableService();
+        ObjectMapper om = new ObjectMapper();
+        System.out.println("JSON");
+        System.out.println(json);
+        try {
+            JsonNode jn = om.readTree(json);
+            String tableName = jn.get("tableName").asText();
+            System.out.println("Table name: " + tableName);
+
+            System.out.println("Data: " + om.writeValueAsString(jn.get("data")));
+
+            if (tableName == null)
+                return "[Error] Missing field tableName.";
+
+            if (jn.get("data") == null)
+                return "[Error] Missing field data.";
+
+            List<String> data = Arrays.asList(om.writeValueAsString(jn.get("data")));
+
+            return insertData(its.structureJsonStatTable(data), tableName);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return "[ERROR] JsonProcessingException when converting insert json.";
+        } catch (IOException ie) {
+            ie.printStackTrace();
+            return "[ERROR] IOException when converting insert json.";
+        }
     }
 
     /**
