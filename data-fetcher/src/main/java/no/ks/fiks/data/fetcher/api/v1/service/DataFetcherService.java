@@ -101,12 +101,30 @@ public class DataFetcherService {
         return result;
     }
 
+    /**
+     * Drops the table specified in the json payload.
+     * Creates a drop query using the tableCode field in the payload before doing a post call to the database-service
+     * API.
+     *
+     * @param jsonPayload
+     * @return a string with the result
+     * @see #apiCall(String, String)
+     */
     public String dropTable(String jsonPayload) {
         String dropQuery = String.format("drop table %s.[SSB_%s]", config.getSchemaName(), getTableCode(jsonPayload));
         String result = apiCall("drop-table", dropQuery);
         return result;
     }
 
+    /**
+     * Truncates the table specified in the json payload.
+     * Creates a truncate query using the tableCode field in the payload before doing a post call to the
+     * database-service API.
+     *
+     * @param jsonPayload the JSON containing the tableCode field
+     * @return a string with the result
+     * @see #apiCall(String, String)
+     */
     public String truncateTable(String jsonPayload) {
         String truncateQuery = String.format("truncate table %s.[SSB_%s]", config.getSchemaName(), getTableCode(jsonPayload));
         String result = apiCall("truncate-table", truncateQuery);
