@@ -36,22 +36,32 @@ public class DataFetcherService {
         config = new SqlConfiguration();
     }
 
+    /**
+     * Creates the table specified in the json payload.
+     * Fetches metadata for the table from SSB by using the tableCode field and eventual filters specified in the
+     * json payload. Creates a create query with the column metadata fetched from SSB before doing a post call to the
+     * database-service API.
+     *
+     * @param jsonPayload the json containing all the information needed.
+     * @return the result from the database-service API
+     *
+     * @see #fetchSsbApiCallData(String, int, Map)
+     * @see #createColumnDeclarations(SsbMetadata)
+     * @see #apiCall(String, String)
+     */
     public String createTable(String jsonPayload) {
         String tableName, query, columnDeclarations, result, tableCode;
         Map<String, List<String>> filters;
         SsbApiCall sac;
 
         tableCode = getTableCode(jsonPayload);
-
         System.out.println("Create table: " + tableCode);
 
         if (tableCode == null)
             return "[ERROR] The json doesn't have the tableCode field.";
 
         tableName = String.format("%s.SSB_%s", config.getSchemaName(), tableCode);
-
         filters = getFilters(jsonPayload);
-
         sac = fetchSsbApiCallData(tableCode,1, filters);
 
         if (sac == null)
@@ -97,6 +107,9 @@ public class DataFetcherService {
         String result ="";
         for(String s: fetchSsbApiCallResult(sac)) {
             result = apiCall("insert-data", createInsertJson(tableName, s));
+
+            if (!result.equals("OK"))
+                return result;
         }
         return result;
     }
