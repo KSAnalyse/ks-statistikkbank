@@ -77,6 +77,13 @@ public class DataFetcherService {
         return result;
     }
 
+    /**
+     * Inserts data fetched from SSB into a table in the database.
+     * Creates a query to SSB using the information found in the json before calling the database-service API.
+     *
+     * @param jsonPayload the json containing all the information needed to fetch data from SSB
+     * @return the result from the database-service API
+     */
     public String insertData(String jsonPayload) {
         String tableCode, tableName;
         int numberOfYears;
@@ -312,6 +319,12 @@ public class DataFetcherService {
         }
     }
 
+    /**
+     * Fetches data from a specific table from SSB using the SsbApiCall class.
+     *
+     * @param sac the SsbApiCall object containing the information about the table to fetch data from
+     * @return the result of the fetch, null if something went wrong
+     */
     private List<String> fetchSsbApiCallResult(SsbApiCall sac) {
         try {
             System.out.println("Fetching data");
@@ -322,6 +335,15 @@ public class DataFetcherService {
         }
     }
 
+    /**
+     * Fetches metadata from a specific table from SSB using the SsbApiCall class.
+     * If there's specified any filters applies these with the removeAllBut parameter set to true.
+     *
+     * @param tableCode the table code to the table at SSB
+     * @param numberOfYears the number of years to fetch data from
+     * @param filters filters to be applied when fetching data
+     * @return the object containing all the information fetched from SSB
+     */
     private SsbApiCall fetchSsbApiCallData(String tableCode, int numberOfYears, Map<String, List<String>> filters) {
         SsbApiCall sac;
 
@@ -351,6 +373,14 @@ public class DataFetcherService {
         }
     }
 
+    /**
+     * Connects and posts to the database-service API.
+     * Connects to the endpoint given and posts the payload.
+     *
+     * @param endpoint the endpoint to where to do the post request
+     * @param payload the payload to be posted
+     * @return the response from the API
+     */
     private String apiCall(String endpoint, String payload) {
         URL url = null;
         try {
@@ -369,14 +399,13 @@ public class DataFetcherService {
             BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(),
                     StandardCharsets.UTF_8));
 
-            String var9;
-
+            String responseString;
             StringBuilder response = new StringBuilder();
 
             while(true) {
                 String responseLine;
                 if ((responseLine = br.readLine()) == null) {
-                    var9 = response.toString();
+                    responseString = response.toString();
                     break;
                 }
 
@@ -384,7 +413,7 @@ public class DataFetcherService {
             }
             connection.disconnect();
 
-            return var9;
+            return responseString;
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
