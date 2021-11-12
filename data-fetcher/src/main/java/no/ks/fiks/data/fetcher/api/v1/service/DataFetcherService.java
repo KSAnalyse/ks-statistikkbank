@@ -144,7 +144,6 @@ public class DataFetcherService {
         return result;
     }
 
-
     /**
      * Gets the value of the tableCode field in the json string provided.
      * If tableCode aren't specified then returns null.
@@ -266,6 +265,14 @@ public class DataFetcherService {
         return columnDeclarations.toString();
     }
 
+    /**
+     * Creates a json string with the fields tableName and data.
+     *
+     * @param tableName the name of the table in the db
+     * @param queryResult the json-stat2 containing the data
+     *
+     * @return returns the new json string if successful, else an error message
+     */
     private String createInsertJson(String tableName, String queryResult) {
         ObjectMapper om = new ObjectMapper();
 
@@ -280,10 +287,17 @@ public class DataFetcherService {
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
-            return "fail";
+            return "[ERROR] Issues occurred while processing the json.";
         }
     }
 
+    /**
+     * Fetches and structures data from SSB and returns the result.
+     * Uses the ssbAPI and Service package to fetch and structure the data.
+     *
+     * @param sac the SsbApiCall object containing all the information needed for the fetch.
+     * @return a list containing a map with values per row
+     */
     private List<Map<String[], BigDecimal>> fetchAndStructureSsbApiCallResult(SsbApiCall sac) {
         InsertTableService its = new InsertTableService();
         try {
