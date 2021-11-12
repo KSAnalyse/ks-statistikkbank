@@ -33,7 +33,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
-            <version>2.3.12.RELEASE</version>
+            <version>2.5.5</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -52,11 +52,25 @@
             <groupId>no.ks.fiks</groupId>
             <artifactId>ks-json-stat.java</artifactId>
             <version>1.1.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/ks-json-stat.java-1.1.1-SNAPSHOT.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>no.ks.fiks</groupId>
             <artifactId>ks-ssb-api-call</artifactId>
             <version>1.0.4-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/lib/ks-ssb-api-call-1.0.4-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <version>5.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>5.3.11</version>
         </dependency>
     </dependencies>
 
@@ -64,9 +78,9 @@
         <main.basedir>${project.basedir}</main.basedir>
         <maven.compiler.source>15</maven.compiler.source>
         <maven.compiler.target>15</maven.compiler.target>
-        <junit-jupiter.version>5.7.2</junit-jupiter.version>
-        <spring-test.version>5.2.16.RELEASE</spring-test.version>
-        <spring.boot.version>2.3.3.RELEASE</spring.boot.version>
+        <junit-jupiter.version>5.8.1</junit-jupiter.version>
+        <spring-test.version>5.3.11</spring-test.version>
+        <spring.boot.version>2.5.5</spring.boot.version>
     </properties>
 
 </project>

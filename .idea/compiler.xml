@@ -14,6 +14,8 @@
     <bytecodeTargetLevel>
       <module name="innhenting-ssb-data" target="15" />
       <module name="innhenting-ssb-klass" target="15" />
+      <module name="ks-statistikkbank-auth" target="16" />
+      <module name="ks-statistikkbank-auth-server" target="16" />
       <module name="scheduler" target="15" />
     </bytecodeTargetLevel>
   </component>
