@@ -21,60 +21,68 @@ class DataFetcherControllerTest {
     }
 
     @Test
-    void createValidTableWithOnlyTableCode() {
-        dfc.dropTable("{\"tableCode\":\"11814\"}");
+    void testCreateValidSsbTableWithOnlyTableCodeAndSchema() {
+        dfc.dropTable("{\"tableCode\":\"11814\",\"schemaName\":\"ssb\"}");
         assertEquals("OK", dfc.createTable(
-                "{\"tableCode\":\"11814\"}"
+                "{\"tableCode\":\"11814\",\"schemaName\":\"ssb\"}"
         ));
     }
 
     @Test
-    void createValidTableWithOnlyYears() {
-        dfc.dropTable("{\"tableCode\":\"11805\"}");
+    void testCreateValidKsTableWithOnlyTableCodeAndSchema() {
+        dfc.dropTable("{\"tableCode\":\"11814\",\"schemaName\":\"ks\"}");
         assertEquals("OK", dfc.createTable(
-                "{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}"
+                "{\"tableCode\":\"11814\",\"schemaName\":\"ks\"}"
         ));
     }
 
     @Test
-    void createValidTableWithAllYears() {
-        dfc.dropTable("{\"tableCode\":\"11805\"}");
+    void testCreateValidTableWithOnlyYears() {
+        dfc.dropTable("{\"tableCode\":\"11805\",\"schemaName\":\"ssb\"}");
         assertEquals("OK", dfc.createTable(
-                "{\"tableCode\":\"11805\",\"numberOfYears\":\"-1\"}"
+                "{\"tableCode\":\"11805\",\"schemaName\":\"ssb\",\"numberOfYears\":\"5\"}"
         ));
     }
 
     @Test
-    void createBigValidTable() {
-        dfc.dropTable("{\"tableCode\":\"12367\"}");
+    void testCreateValidTableWithAllYears() {
+        dfc.dropTable("{\"tableCode\":\"11805\",\"schemaName\":\"ssb\"}");
         assertEquals("OK", dfc.createTable(
-                "{\"tableCode\":\"12367\",\"numberOfYears\":\"1\", \"filters\":[{\"code\":\"KOKregnskapsomfa0000\", \"values\":[\"B\"]}]}"
+                "{\"tableCode\":\"11805\",\"schemaName\":\"ssb\",\"numberOfYears\":\"-1\"}"
         ));
     }
 
     @Test
-    void createNonExistingTable() {
+    void testCreateBigValidTable() {
+        dfc.dropTable("{\"tableCode\":\"12367\",\"schemaName\":\"ssb\"}");
+        assertEquals("OK", dfc.createTable(
+                "{\"tableCode\":\"12367\",\"schemaName\":\"ssb\",\"numberOfYears\":\"1\", \"filters\":[{\"code\":\"KOKregnskapsomfa0000\", \"values\":[\"B\"]}]}"
+        ));
+    }
+
+    @Test
+    void testCreateNonExistingTable() {
         assertEquals("[ERROR] Something went wrong while fetching the SsbApiCall data.", dfc.createTable(
-                "{\"tableCode\":\"00001\",\"numberOfYears\":\"1\"}"
+                "{\"tableCode\":\"00001\",\"schemaName\":\"ssb\",\"numberOfYears\":\"1\"}"
         ));
     }
 
     @Test
-    void createTableWithEmptyJsonExistingTable() {
+    void testCreateTableWithEmptyJsonExistingTable() {
         assertEquals("[ERROR] The json doesn't have the tableCode field.", dfc.createTable(
                 "{}"
         ));
     }
 
     @Test
-    void dropTable() {
-        dfc.createTable("{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}");
-        assertEquals("OK", dfc.dropTable("{\"tableCode\":\"11805\"}"));
+    void testDropTable() {
+        dfc.createTable("{\"tableCode\":\"11805\",\"schemaName\":\"ssb\",\"numberOfYears\":\"5\"}");
+        assertEquals("OK", dfc.dropTable("{\"tableCode\":\"11805\",\"schemaName\":\"ssb\"}"));
     }
 
     @Test
-    void truncateTable() {
-        dfc.createTable("{\"tableCode\":\"11805\",\"numberOfYears\":\"5\"}");
-        assertEquals("OK", dfc.truncateTable("{\"tableCode\":\"11805\"}"));
+    void testTruncateTable() {
+        dfc.createTable("{\"tableCode\":\"11805\",\"schemaName\":\"ssb\",\"numberOfYears\":\"5\"}");
+        assertEquals("OK", dfc.truncateTable("{\"tableCode\":\"11805\",\"schemaName\":\"ssb\"}"));
     }
 }

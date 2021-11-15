@@ -24,7 +24,7 @@ class DatabaseServiceControllerTest {
 
     @BeforeEach
     void setUp() throws MalformedURLException {
-        validDest = sqlConfig.getSchemaName() + ".toto";
+        validDest = "ks.toto";
     }
 
     @AfterEach
@@ -36,7 +36,7 @@ class DatabaseServiceControllerTest {
     void testDatabaseServiceController() {assertNotNull(dbsc);}
 
     @Test
-    void createValidTableWithOnlyTableCode() {
+    void testCreateValidTableWithOnlyTableCode() {
         assertEquals("OK", dbsc.createTable(
                 "create table " + validDest + " ([Regionkode] [varchar] (5))"
         ));

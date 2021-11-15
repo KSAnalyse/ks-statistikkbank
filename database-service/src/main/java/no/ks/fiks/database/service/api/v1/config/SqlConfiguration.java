@@ -3,10 +3,13 @@ package no.ks.fiks.database.service.api.v1.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @ConfigurationProperties("sql.properties")
 public class SqlConfiguration {
-    private String schemaName = "ssbks";
+    private List<String> schemaNames = List.of("ssb", "ks");
+    //private String schemaName = "ssbks";
     private int varcharMaxSize = 1000;
     private int numericMaxPrecision = 18;
     private int numericMaxScale = 7;
@@ -768,11 +771,7 @@ public class SqlConfiguration {
         return keyword;
     }
 
-    public void setKeyword(String[] keyword) {
-        this.keyword = keyword;
-    }
-
-    public String getSchemaName() {
+    /*public String getSchemaName() {
         return schemaName;
     }
 
@@ -780,27 +779,21 @@ public class SqlConfiguration {
         this.schemaName = schemaName;
     }
 
+     */
+
     public int getVarcharMaxSize() {
         return varcharMaxSize;
-    }
-
-    public void setVarcharMaxSize(int varcharMaxSize) {
-        this.varcharMaxSize = varcharMaxSize;
     }
 
     public int getNumericMaxPrecision() {
         return numericMaxPrecision;
     }
 
-    public void setNumericMaxPrecision(int numericMaxPrecision) {
-        this.numericMaxPrecision = numericMaxPrecision;
-    }
-
     public int getNumericMaxScale() {
         return numericMaxScale;
     }
 
-    public void setNumericMaxScale(int numericMaxScale) {
-        this.numericMaxScale = numericMaxScale;
+    public List<String> getSchemaNames() {
+        return schemaNames;
     }
 }

@@ -27,7 +27,8 @@ import java.util.regex.Pattern;
 public class DatabaseService {
     private final String createColumnRegexWithoutParenthesis;
     private final String createCommandRegex, dropTruncateCommandRegex, dropTruncateQueryRegex, createQueryRegex,
-            tableNameRegex, schemaName;
+            tableNameRegex;//, schemaName;
+    private final List<String> schemaNames;
 
     private final SqlConfiguration sqlConfig;
     private final JdbcTemplate jdbc;
@@ -45,7 +46,8 @@ public class DatabaseService {
         this.sqlConfig = new SqlConfiguration();
         this.jdbc = jdbcTemplate;
 
-        schemaName = sqlConfig.getSchemaName();
+        //schemaName = sqlConfig.getSchemaName();
+        schemaNames = sqlConfig.getSchemaNames();
 
         tableNameRegex = "((\\[\\w+\\]|(\\w+))\\.(\\[\\w+\\]|\\w+))";
         varcharRegex = "\\[varchar\\] \\(\\d+\\)";
@@ -153,7 +155,11 @@ public class DatabaseService {
         tableName = destSplit[1];
 
         //Always use the same schema
-        if (!destSchemaName.equals(schemaName)) {
+        /*if (!destSchemaName.equals(schemaName)) {
+            System.out.println("Invalid schema name. Not a supported schema.");
+            return false;
+        }*/
+        if (!schemaNames.contains(destSchemaName)) {
             System.out.println("Invalid schema name. Not a supported schema.");
             return false;
         }

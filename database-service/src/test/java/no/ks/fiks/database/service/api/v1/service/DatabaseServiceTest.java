@@ -38,7 +38,7 @@ class DatabaseServiceTest {
         String validPersistingTableName = "one_column";
         String validPersistingTableNameMultipleColumns = "multiple_column";
 
-        validSchemaName = sqlConfig.getSchemaName();
+        validSchemaName = "ks";
         validTableName = "toto";
 
         validDest = validSchemaName + "." + validTableName;
@@ -60,7 +60,7 @@ class DatabaseServiceTest {
     void testIncorrectSyntaxOnInputString() {
         // Missing a ) at the end to have the correct syntax
         String inputString = "create table " + validDest + " (Regionkode varchar(100)";
-        String expectedResultString = "[ERROR] Not a valid structure on query \"create table ssbks.toto (Regionkode varchar(100)\".";
+        String expectedResultString = "[ERROR] Not a valid structure on query \"create table ks.toto (Regionkode varchar(100)\".";
 
         assertEquals(expectedResultString, dbs.checkQuery(inputString));
     }
@@ -125,7 +125,7 @@ class DatabaseServiceTest {
 
         dbs.checkQuery("drop table " + validDest);
 
-        assertEquals("[ERROR] Not a valid structure on query \"create table ssbks.toto ([Col1] [varchar (200))\".", dbs.checkQuery(sqlQuery));
+        assertEquals("[ERROR] Not a valid structure on query \"create table ks.toto ([Col1] [varchar (200))\".", dbs.checkQuery(sqlQuery));
     }
 
     @Test

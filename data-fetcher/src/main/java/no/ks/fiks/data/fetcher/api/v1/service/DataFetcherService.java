@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -50,17 +49,22 @@ public class DataFetcherService {
      * @see #apiCall(String, String)
      */
     public String createTable(String jsonPayload) {
-        String tableName, query, columnDeclarations, result, tableCode;
+        String tableName, query, columnDeclarations, result, tableCode, schemaName;
         Map<String, List<String>> filters;
         SsbApiCall sac;
 
         tableCode = getTableCode(jsonPayload);
         System.out.println("Create table: " + tableCode);
 
+        schemaName = getSchemaName(jsonPayload);
+
         if (tableCode == null)
             return "[ERROR] The json doesn't have the tableCode field.";
 
-        tableName = String.format("%s.SSB_%s", config.getSchemaName(), tableCode);
+        if (schemaName == null)
+            return "[ERROR] The json doesn't have the schemaName field.";
+
+        tableName = String.format("%s.[%s]", schemaName, tableCode);
         filters = getFilters(jsonPayload);
         sac = fetchSsbApiCallData(tableCode,1, filters);
 
@@ -85,18 +89,22 @@ public class DataFetcherService {
      * @return the result from the database-service API
      */
     public String insertData(String jsonPayload) {
-        String tableCode, tableName;
+        String tableCode, tableName, schemaName;
         int numberOfYears;
         Map<String, List<String>> filters;
         List<Map<String[], BigDecimal>> dataResult;
         SsbApiCall sac;
 
         tableCode = getTableCode(jsonPayload);
+        schemaName = getSchemaName(jsonPayload);
 
         if (tableCode == null)
             return "[ERROR] The json doesn't have the tableCode field.";
 
-        tableName = String.format("%s.SSB_%s", config.getSchemaName(), tableCode);
+        if (schemaName == null)
+            return "[ERROR] The json doesn't have the schemaName field.";
+
+        tableName = String.format("%s.[%s]", schemaName, tableCode);
         numberOfYears = getNumberOfYears(jsonPayload);
 
         filters = getFilters(jsonPayload);
@@ -131,9 +139,19 @@ public class DataFetcherService {
      * @see #apiCall(String, String)
      */
     public String dropTable(String jsonPayload) {
-        String dropQuery = String.format("drop table %s.[SSB_%s]", config.getSchemaName(), getTableCode(jsonPayload));
-        String result = apiCall("drop-table", dropQuery);
-        return result;
+        String schemaName, tableCode;
+
+        schemaName = getSchemaName(jsonPayload);
+        tableCode = getTableCode(jsonPayload);
+
+        if (tableCode == null)
+            return "[ERROR] The json doesn't have the tableCode field.";
+
+        if (schemaName == null)
+            return "[ERROR] The json doesn't have the schemaName field.";
+
+        String dropQuery = String.format("drop table %s.[%s]", getSchemaName(jsonPayload), getTableCode(jsonPayload));
+        return apiCall("drop-table", dropQuery);
     }
 
     /**
@@ -146,9 +164,19 @@ public class DataFetcherService {
      * @see #apiCall(String, String)
      */
     public String truncateTable(String jsonPayload) {
-        String truncateQuery = String.format("truncate table %s.[SSB_%s]", config.getSchemaName(), getTableCode(jsonPayload));
-        String result = apiCall("truncate-table", truncateQuery);
-        return result;
+        String schemaName, tableCode;
+
+        schemaName = getSchemaName(jsonPayload);
+        tableCode = getTableCode(jsonPayload);
+
+        if (tableCode == null)
+            return "[ERROR] The json doesn't have the tableCode field.";
+
+        if (schemaName == null)
+            return "[ERROR] The json doesn't have the schemaName field.";
+
+        String truncateQuery = String.format("truncate table %s.[%s]", schemaName, tableCode);
+        return apiCall("truncate-table", truncateQuery);
     }
 
     /**
@@ -172,6 +200,30 @@ public class DataFetcherService {
         } catch (NullPointerException ne) {
             ne.printStackTrace();
             return ("[ERROR] NullPointerException when fetching table code from json object.");
+        }
+    }
+
+    /**
+     * Gets the value of the tableCode field in the json string provided.
+     * If tableCode aren't specified then returns null.
+     * @param createString the json string
+     * @return the value of tableCode as text or null if it doesn't exist
+     */
+    private String getSchemaName(String createString) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode actualObj = mapper.readTree(createString);
+
+            if (actualObj.get("schemaName") == null)
+                return null;
+
+            return actualObj.get("schemaName").asText();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return ("[ERROR] JsonProcessingException when fetching schema name from json object.");
+        } catch (NullPointerException ne) {
+            ne.printStackTrace();
+            return ("[ERROR] NullPointerException when fetching schema name from json object.");
         }
     }
 
