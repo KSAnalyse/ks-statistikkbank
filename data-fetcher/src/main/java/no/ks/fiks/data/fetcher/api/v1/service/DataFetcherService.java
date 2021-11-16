@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import no.ks.fiks.Service.InsertTableService;
-import no.ks.fiks.database.service.api.v1.config.SqlConfiguration;
 import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadata;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadataVariables;
@@ -29,11 +28,6 @@ import java.util.regex.Pattern;
 
 @Service
 public class DataFetcherService {
-    private final SqlConfiguration config;
-
-    public DataFetcherService() {
-        config = new SqlConfiguration();
-    }
 
     /**
      * Creates the table specified in the json payload.
