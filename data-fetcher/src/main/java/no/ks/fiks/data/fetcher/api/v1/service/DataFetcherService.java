@@ -318,7 +318,6 @@ public class DataFetcherService {
             on.set("data", resultData);
 
             return om.writeValueAsString(on);
-
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return "[ERROR] Issues occurred while processing the json.";
