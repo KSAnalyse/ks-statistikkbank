@@ -43,8 +43,7 @@ public class DataFetcherService {
      * @see #apiCall(String, String)
      */
     public String createTable(String jsonPayload) {
-        String tableName, query, columnDeclarations, result, tableCode, schemaName;
-        Map<String, List<String>> filters;
+        String tableName, query, columnDeclarations, tableCode, schemaName;
         SsbApiCall sac;
 
         tableCode = getTableCode(jsonPayload);
@@ -58,21 +57,16 @@ public class DataFetcherService {
         if (schemaName == null)
             return "[ERROR] The json doesn't have the schemaName field.";
 
-        tableName = String.format("%s.[%s]", schemaName, tableCode);
-        filters = getFilters(jsonPayload);
-        sac = fetchSsbApiCallData(tableCode,1, filters);
+        sac = fetchSsbApiCallData(tableCode,1, getFilters(jsonPayload));
 
         if (sac == null)
             return "[ERROR] Something went wrong while fetching the SsbApiCall data.";
 
+        tableName = String.format("%s.[%s]", schemaName, tableCode);
         columnDeclarations = createColumnDeclarations(sac.getMetadata());
-
-        //create the table in the db
         query = String.format("create table %s (%s, [Verdi] [numeric] (18,1))", tableName, columnDeclarations);
 
-        result = apiCall("create-table", query);
-
-        return result;
+        return apiCall("create-table", query);
     }
 
     /**
