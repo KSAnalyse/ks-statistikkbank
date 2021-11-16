@@ -85,4 +85,13 @@ class DataFetcherControllerTest {
         dfc.createTable("{\"tableCode\":\"11805\",\"schemaName\":\"ssb\",\"numberOfYears\":\"5\"}");
         assertEquals("OK", dfc.truncateTable("{\"tableCode\":\"11805\",\"schemaName\":\"ssb\"}"));
     }
+
+    @Test
+    void testInsertSingleYear() {
+        dfc.createTable("{\"tableCode\":\"11814\",\"schemaName\":\"ssb\",\"numberOfYears\":\"5\"}");
+        assertEquals("OK", dfc.insertData(
+                "{\"tableCode\":\"11814\",\"schemaName\":\"ssb\",\"numberOfYears\":\"1\"," +
+                        "\"filters\":[{\"code\":\"KOKkommuneregion0000\", \"values\":[\"0301\"]}]}"
+        ));
+    }
 }
