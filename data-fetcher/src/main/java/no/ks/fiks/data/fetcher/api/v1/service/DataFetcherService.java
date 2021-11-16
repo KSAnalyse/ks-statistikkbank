@@ -118,12 +118,11 @@ public class DataFetcherService {
     public String dropTable(String jsonPayload) {
         String schemaName, tableCode;
 
-        schemaName = getSchemaName(jsonPayload);
         tableCode = getTableCode(jsonPayload);
-
         if (tableCode == null)
             return "[ERROR] The json doesn't have the tableCode field.";
 
+        schemaName = getSchemaName(jsonPayload);
         if (schemaName == null)
             return "[ERROR] The json doesn't have the schemaName field.";
 
