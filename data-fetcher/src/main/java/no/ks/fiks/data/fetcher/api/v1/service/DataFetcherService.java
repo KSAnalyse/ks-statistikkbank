@@ -47,18 +47,15 @@ public class DataFetcherService {
         SsbApiCall sac;
 
         tableCode = getTableCode(jsonPayload);
+        if (tableCode == null)
+            return "[ERROR] The json doesn't have the tableCode field.";
         System.out.println("Create table: " + tableCode);
 
         schemaName = getSchemaName(jsonPayload);
-
-        if (tableCode == null)
-            return "[ERROR] The json doesn't have the tableCode field.";
-
         if (schemaName == null)
             return "[ERROR] The json doesn't have the schemaName field.";
 
         sac = fetchSsbApiCallData(tableCode,1, getFilters(jsonPayload));
-
         if (sac == null)
             return "[ERROR] Something went wrong while fetching the SsbApiCall data.";
 
@@ -78,36 +75,28 @@ public class DataFetcherService {
      */
     public String insertData(String jsonPayload) {
         String tableCode, tableName, schemaName;
-        int numberOfYears;
-        Map<String, List<String>> filters;
         List<Map<String[], BigDecimal>> dataResult;
         SsbApiCall sac;
 
-        tableCode = getTableCode(jsonPayload);
-        schemaName = getSchemaName(jsonPayload);
 
+        tableCode = getTableCode(jsonPayload);
         if (tableCode == null)
             return "[ERROR] The json doesn't have the tableCode field.";
 
+        schemaName = getSchemaName(jsonPayload);
         if (schemaName == null)
             return "[ERROR] The json doesn't have the schemaName field.";
 
-        tableName = String.format("%s.[%s]", schemaName, tableCode);
-        numberOfYears = getNumberOfYears(jsonPayload);
-
-        filters = getFilters(jsonPayload);
-
-        sac = fetchSsbApiCallData(tableCode, numberOfYears, filters);
-
+        sac = fetchSsbApiCallData(tableCode, getNumberOfYears(jsonPayload), getFilters(jsonPayload));
         if (sac == null)
             return "[ERROR] Failed while fetching SsbApiCall data.";
 
         dataResult = fetchAndStructureSsbApiCallResult(sac);
-
         if (dataResult == null)
             return "[ERROR] Failed while fetching and structuring data.";
 
         String result ="";
+        tableName = String.format("%s.[%s]", schemaName, tableCode);
         for(String s: fetchSsbApiCallResult(sac)) {
             result = apiCall("insert-data", createInsertJson(tableName, s));
 
