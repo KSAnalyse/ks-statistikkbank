@@ -1,8 +1,5 @@
 package no.ks.fiks.data.fetcher.api.v1.controller;
 
-import no.ks.fiks.database.service.api.v1.config.SqlConfiguration;
-import no.ks.fiks.database.service.api.v1.controller.DatabaseServiceController;
-import no.ks.fiks.database.service.api.v1.service.DatabaseService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
