@@ -1,4 +1,4 @@
-package no.ks.fiks.database.service.api.v1.security;
+package no.ks.fiks.database.service.api.v1.security.config;
 
 import org.springframework.security.web.RedirectStrategy;
 
@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class NoRedirectStrategy implements RedirectStrategy {
     @Override
-    public void sendRedirect(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, String s) throws IOException {
+    public void sendRedirect(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, String s) {
 
     }
 }

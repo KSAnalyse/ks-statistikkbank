@@ -1,4 +1,4 @@
-package no.ks.fiks.database.service.user.entity;
+package no.ks.fiks.database.service.api.v1.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -29,9 +29,9 @@ public class User implements UserDetails {
          @JsonProperty("username") final String username,
          @JsonProperty("password") final String password) {
         super();
-        this.id = requireNonNull(id);
+        this.id = id;
         this.username = requireNonNull(username);
-        this.password = requireNonNull(password);
+        this.password = password;
     }
 
     @JsonIgnore

@@ -1,9 +1,9 @@
-package no.ks.fiks.database.service.api.v1.security;
+package no.ks.fiks.database.service.api.v1.security.config;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
-import no.ks.fiks.database.service.api.v1.auth.UserAuthenticationService;
+import no.ks.fiks.database.service.api.v1.auth.api.UserAuthenticationService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.core.AuthenticationException;
@@ -29,12 +29,12 @@ final class TokenAuthenticationProvider extends AbstractUserDetailsAuthenticatio
     }
 
     @Override
-    protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+    protected UserDetails retrieveUser(final String username, final UsernamePasswordAuthenticationToken authentication) {
         final Object token = authentication.getCredentials();
         return Optional
                 .ofNullable(token)
                 .map(String::valueOf)
                 .flatMap(auth::findByToken)
-                .orElseThrow(() -> new UsernameNotFoundException("Cannot find user with authentication token=" +token));
+                .orElseThrow(() -> new UsernameNotFoundException("Cannot find user with authentication token=" + token));
     }
 }

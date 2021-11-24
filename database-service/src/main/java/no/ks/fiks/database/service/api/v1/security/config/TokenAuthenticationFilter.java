@@ -1,4 +1,4 @@
-package no.ks.fiks.database.service.api.v1.security;
+package no.ks.fiks.database.service.api.v1.security.config;
 
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -28,10 +28,11 @@ public class TokenAuthenticationFilter extends AbstractAuthenticationProcessingF
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws AuthenticationException, IOException, ServletException {
+    public Authentication attemptAuthentication(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws AuthenticationException {
         final String param = ofNullable(httpServletRequest.getHeader(AUTHORIZATION)).orElse(httpServletRequest.getParameter("t"));
 
-        final String token = ofNullable(param).map(value -> removeStart(value, BEARER)).map(String::trim).orElseThrow(() -> new BadCredentialsException("Missing Authentication Token"));
+        final String token = ofNullable(param).map(value -> removeStart(value, BEARER)).map(String::trim)
+                .orElseThrow(() -> new BadCredentialsException("Missing Authentication Token"));
 
         final Authentication authentication = new UsernamePasswordAuthenticationToken(token, token);
         return getAuthenticationManager().authenticate(authentication);
