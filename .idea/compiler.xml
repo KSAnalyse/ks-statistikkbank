@@ -2,15 +2,27 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="scheduler" />
+        <module name="data-fetcher" />
         <module name="database-service" />
-        <module name="innhenting-ssb-klass" />
-        <module name="innhenting-ssb-data" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="innhenting-ssb-data" target="15" />
+      <module name="innhenting-ssb-klass" target="15" />
+      <module name="ks-statistikkbank-auth" target="16" />
+      <module name="ks-statistikkbank-auth-server" target="16" />
+      <module name="scheduler" target="15" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="innhenting-ssb-data" options="" />
+      <module name="scheduler" options="" />
+    </option>
   </component>
 </project>
