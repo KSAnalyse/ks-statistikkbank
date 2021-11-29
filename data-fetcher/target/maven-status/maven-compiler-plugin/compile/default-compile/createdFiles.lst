@@ -1,9 +1,0 @@
-no\ks\fiks\data\fetcher\api\v1\controller\DataFetcherController.class
-no\ks\fiks\data\fetcher\api\v1\service\DataFetcherService.class
-no\ks\fiks\data\fetcher\tableinfo\TableFilterAndGroups.class
-no\ks\fiks\data\fetcher\App.class
-no\ks\fiks\data\fetcher\api\v1\scheduler\SchedulerController.class
-no\ks\fiks\data\fetcher\api\v1\scheduler\Scheduler$SsbApiCallTask.class
-no\ks\fiks\data\fetcher\api\v1\scheduler\Scheduler.class
-no\ks\fiks\data\fetcher\api\v1\scheduler\SchedulerService.class
-no\ks\fiks\data\fetcher\csvreader\CsvReader.class

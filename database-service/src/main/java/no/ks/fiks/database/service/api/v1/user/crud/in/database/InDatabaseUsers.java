@@ -51,7 +51,7 @@ public class InDatabaseUsers implements UserCrudService {
         User user = User.builder()
                 .id(row.get(0).get("id") == null ? "null" : row.get(0).get("id").toString())
                 .username(row.get(0).get("username").toString())
-                .password(row.get(0).get("password").toString())
+                .password(row.get(0).get("password") == null ? "null" : row.get(0).get("id").toString())
                 .build();
         return ofNullable(user);
     }

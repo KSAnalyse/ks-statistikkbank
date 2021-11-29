@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ks.fiks.Service.InsertTableService;
 import no.ks.fiks.database.service.api.v1.config.SqlConfiguration;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -64,15 +63,27 @@ public class DatabaseService {
         createQueryRegex = createCommandRegex + " " + tableNameRegex + " " + createColumnRegexWithParenthesis;
     }
 
-    /** Checks if an SQL query is valid
+    /**
+     * Checks if the input string is equal to any of the strings in the array
      *
+     * @param inputStr the input string to be checked, e.g. a column name
+     * @param items    an array containing the words to compare with the input string
+     * @return true if the input string matches any of the items in the array, else false
+     */
+    private static boolean stringContainsItemFromList(String inputStr, String[] items) {
+        return Arrays.stream(items).anyMatch(inputStr::equalsIgnoreCase);
+    }
+
+    /**
+     * Checks if an SQL query is valid
+     * <p>
      * Checks if an SQL query is either a create, drop or truncate query.
      * If it's either a drop or truncate query, checks that the query matches the expected structure before running it.
      * If it's a create query it also checks the column declarations before running it.
      *
      * @param sqlQuery the SQL query that is supposed to be run
      * @return an error message if the table name isn't valid, the query doesn't match the required structure or an
-     *         SQL error code and corresponding message if the query fails
+     * SQL error code and corresponding message if the query fails
      * @see #checkAndRunCreateQuery(String)
      * @see #checkAndRunDropTruncateQuery(String)
      */
@@ -214,7 +225,7 @@ public class DatabaseService {
      * Checks if the given size in a column declaration is inside the valid range.
      * Supported types are varchar and numeric. Gets the size range from the SqlConfiguration class.
      *
-     * @param type The type of the column, e.g. varchar or numeric
+     * @param type   The type of the column, e.g. varchar or numeric
      * @param values The size of the column. Numeric are separated by ",".
      * @return false if the column declaration isn't valid
      * @see SqlConfiguration
@@ -254,21 +265,10 @@ public class DatabaseService {
     }
 
     /**
-     * Checks if the input string is equal to any of the strings in the array
-     *
-     * @param inputStr the input string to be checked, e.g. a column name
-     * @param items an array containing the words to compare with the input string
-     * @return true if the input string matches any of the items in the array, else false
-     */
-    private static boolean stringContainsItemFromList(String inputStr, String[] items) {
-        return Arrays.stream(items).anyMatch(inputStr::equalsIgnoreCase);
-    }
-
-    /**
      * Runs the SQL query
      * Tries to run the query provided and returns an error if an exception occurs
      *
-     * @param query        the query provided
+     * @param query the query provided
      * @return an error message on the form "SQL Error: [errorCode]. [errorMessage]" if something went wrong, else "OK"
      */
     private String runSqlStatement(String query) {
@@ -328,7 +328,7 @@ public class DatabaseService {
      */
     public String insertData(List<Map<String[], BigDecimal>> ssbResult, String tableName) {
         int maxNumberOfRows = 1000000;
-        String result="";
+        String result = "";
 
         if (!checkValidTableName(tableName))
             return "Not a valid table name.";
@@ -336,7 +336,7 @@ public class DatabaseService {
         if (ssbResult.size() > maxNumberOfRows) {
             int index;
             for (index = 0; index < ssbResult.size() / maxNumberOfRows; index++) {
-                List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index*maxNumberOfRows, (index + 1) * maxNumberOfRows);
+                List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index * maxNumberOfRows, (index + 1) * maxNumberOfRows);
 
                 result = batchUpdateData(sublist, tableName);
 
@@ -345,7 +345,7 @@ public class DatabaseService {
             }
 
             if (ssbResult.size() % maxNumberOfRows > 0) {
-                List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index*maxNumberOfRows, ssbResult.size());
+                List<Map<String[], BigDecimal>> sublist = ssbResult.subList(index * maxNumberOfRows, ssbResult.size());
                 result = batchUpdateData(sublist, tableName);
             }
 
@@ -367,7 +367,7 @@ public class DatabaseService {
         StopWatch timer = new StopWatch();
         String valuesParam = "";
 
-        for (String[] sa: ssbResult.get(0).keySet()) {
+        for (String[] sa : ssbResult.get(0).keySet()) {
             for (int i = 0; i < sa.length; i++) {
                 valuesParam += "?,";
             }
@@ -383,14 +383,14 @@ public class DatabaseService {
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
-                        for (String[] sa: ssbResult.get(i).keySet()) {
+                        for (String[] sa : ssbResult.get(i).keySet()) {
                             int c;
 
                             for (c = 0; c < sa.length; c++) {
-                                preparedStatement.setString(c+1, sa[c]);
+                                preparedStatement.setString(c + 1, sa[c]);
                             }
 
-                            preparedStatement.setBigDecimal(c+1, ssbResult.get(i).get(sa));
+                            preparedStatement.setBigDecimal(c + 1, ssbResult.get(i).get(sa));
                         }
                     }
 

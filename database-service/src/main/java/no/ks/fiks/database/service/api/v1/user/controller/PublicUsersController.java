@@ -6,6 +6,8 @@ import lombok.experimental.FieldDefaults;
 import no.ks.fiks.database.service.api.v1.auth.api.UserAuthenticationService;
 import no.ks.fiks.database.service.api.v1.user.crud.api.UserCrudService;
 import no.ks.fiks.database.service.api.v1.user.entity.User;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,14 +30,14 @@ final class PublicUsersController {
     String register(
             @RequestParam("email") final String username,
             @RequestParam("password") final String password) {
+
         users.save(
                 User.builder()
                         .username(username)
-                        .password(password)
+                        .password(BCrypt.hashpw(password, BCrypt.gensalt(10)))
                         .build()
         );
-
-        return login(username, password);
+        return "User " + username + " created in the database.";
     }
 
     @PostMapping("/login")
