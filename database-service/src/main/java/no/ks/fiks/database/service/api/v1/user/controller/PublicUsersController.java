@@ -44,6 +44,7 @@ final class PublicUsersController {
     String login(
             @RequestParam("email") final String username,
             @RequestParam("password") final String password) {
+        System.out.println("Test");
         return authentication
                 .login(username, password)
                 .orElseThrow(() -> new RuntimeException("invalid login and/or password"));
