@@ -28,19 +28,15 @@ final class TokenAuthenticationService implements UserAuthenticationService {
     @Override
     public Optional<String> login(final String username, final String password) {
         Optional<String> tokenID = users
-                .findByUsername(username)
-                .filter(user -> BCrypt.checkpw(password, user.getPassword()))
-                .map(user -> tokens.expiring(ImmutableMap.of("username", username)));
-        users.save(User.builder().id(tokenID.orElse(null)).username(username).password(password).build());
-        System.out.println(tokenID + " " + username + " " + password);
-
-        return tokenID;
+                    .findByUsername(username)
+                    .filter(user -> BCrypt.checkpw(password, user.getPassword()))
+                    .map(user -> tokens.expiring(ImmutableMap.of("username", username)));
+            //users.save(User.builder().id(tokenID.orElse(null)).username(username).password(password).build());
+       return tokenID;
     }
 
     @Override
     public Optional<User> findByToken(final String token) {
-        if (users.find(token).toString().equals("null"))
-            return Optional.empty();
         return Optional
                 .of(tokens.verify(token))
                 .map(map -> map.get("username"))
