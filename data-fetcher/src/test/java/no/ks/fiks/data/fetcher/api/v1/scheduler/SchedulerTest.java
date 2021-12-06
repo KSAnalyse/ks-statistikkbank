@@ -17,7 +17,7 @@ class SchedulerTest {
         taskExecutor.setCorePoolSize(30);
         taskExecutor.setMaxPoolSize(30);
         taskExecutor.initialize();
-        //new Scheduler(taskExecutor).runApiCall();
+        new Scheduler(taskExecutor).runApiCall();
     }
     /*
     1637141718116
