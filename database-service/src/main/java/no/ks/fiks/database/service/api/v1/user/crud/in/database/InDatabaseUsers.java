@@ -49,10 +49,10 @@ public class InDatabaseUsers implements UserCrudService {
         String sql = "SELECT * FROM config.Users WHERE username = '" + username + "'";
         List<Map<String, Object>> row = jdbcTemplate.queryForList(sql);
         User user = User.builder()
-                .id(row.get(0).get("id") == null ? "null" : row.get(0).get("id").toString())
-                .username(row.get(0).get("username").toString())
-                .password(row.get(0).get("password") == null ? "null" : row.get(0).get("id").toString())
-                .build();
+                    .id(row.get(0).get("id").toString())
+                    .username(row.get(0).get("username").toString())
+                    .password(row.get(0).get("password").toString())
+                    .build();
         return ofNullable(user);
     }
 }
