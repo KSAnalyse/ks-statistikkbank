@@ -133,7 +133,6 @@ public class Scheduler {
                         resetQueryCounter();
                     }
 
-                    System.out.println("Wut?");
                     increaseQueryCounter(1);
                     JsonNode jsonObject = mapper.readTree(getFirstJsonInQueue());
                     SsbApiCall ssbApiCall = new SsbApiCall(jsonObject.get("tableCode").asText(), 5, "131",
@@ -141,7 +140,7 @@ public class Scheduler {
                     SsbApiCallTask sact = new SsbApiCallTask(dfs, ssbApiCall, getFirstJsonInQueue(), jsonObject.get("tableCode").asText(),
                             ssbApiCall.getQuerySize(), System.nanoTime(), this);
 
-                    if (getQueryCounter() + sact.querySize >= 30) {
+                    if (getQueryCounter() + sact.querySize + 2 >= 30) {
                         System.out.println("[ThreadManager] Sleeping for 60s");
                         TimeUnit.SECONDS.sleep(60);
                         resetQueryCounter();
@@ -183,11 +182,12 @@ public class Scheduler {
         @Override
         public void run() {
             System.out.println("[" + tableCode + "] STARTING. " + ssbApiCall.getMetadata().getTitle() + ". Size: " + ssbApiCall.getQuerySize());
-
+            System.out.println("[" + tableCode + "] json: " + json);
             // Both createTable and insertData uses the SsbApiCall class which means two extra queries
             monitor.increaseQueryCounter(querySize + 2);
-            System.out.println(dfs.createTable(json));
-            System.out.println(dfs.insertData(json));
+            System.out.println("[" + tableCode + "] createTable: " + dfs.createTable(json));
+            System.out.println("[" + tableCode + "] truncateTable: " + dfs.truncateTable(json));
+            System.out.println("[" + tableCode + "] insertData: " + dfs.insertData(json));
             System.out.println("[" + tableCode + "] DONE. " + ssbApiCall.getMetadata().getTitle());
             /*try {
                 System.out.println("[" + tableCode + "] STARTING. " + ssbApiCall.getMetadata().getTitle() + ". Size: " + ssbApiCall.getQuerySize());
