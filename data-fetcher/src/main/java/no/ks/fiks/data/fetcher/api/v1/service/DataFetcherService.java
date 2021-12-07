@@ -13,10 +13,7 @@ import no.ks.fiks.ssbAPI.metadataApi.SsbMetadataVariables;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -28,6 +25,24 @@ import java.util.regex.Pattern;
 
 @Service
 public class DataFetcherService {
+
+    private String apiToken;
+    private Date lastTokenFetch;
+    private String username;
+    private String password;
+
+    public DataFetcherService() {
+
+        Properties login = new Properties();
+        try {
+            FileReader in = new FileReader("login.properties");
+            login.load(in);
+            this.username = login.getProperty("username");
+            this.password = login.getProperty("password");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Creates the table specified in the json payload.
@@ -49,7 +64,6 @@ public class DataFetcherService {
         tableCode = getTableCode(jsonPayload);
         if (tableCode == null)
             return "[ERROR] The json doesn't have the tableCode field.";
-        System.out.println("Create table: " + tableCode);
 
         schemaName = getSchemaName(jsonPayload);
         if (schemaName == null)
@@ -77,7 +91,6 @@ public class DataFetcherService {
         String tableCode, tableName, schemaName;
         List<Map<String[], BigDecimal>> dataResult;
         SsbApiCall sac;
-
 
         tableCode = getTableCode(jsonPayload);
         if (tableCode == null)
@@ -334,10 +347,8 @@ public class DataFetcherService {
     private List<Map<String[], BigDecimal>> fetchAndStructureSsbApiCallResult(SsbApiCall sac) {
         InsertTableService its = new InsertTableService();
         try {
-            System.out.println("Fetching data");
             List<String> jsonStatQuery = sac.tableApiCall();
 
-            System.out.println("Structuring the json data");
             return its.structureJsonStatTable(jsonStatQuery);
         } catch (IOException ie) {
             System.out.println("IOException in fetchAndStructureSsbApiCallResult.");
@@ -353,7 +364,6 @@ public class DataFetcherService {
      */
     private List<String> fetchSsbApiCallResult(SsbApiCall sac) {
         try {
-            System.out.println("Fetching data");
             return sac.tableApiCall();
         } catch (IOException ie) {
             System.out.println("IOException in fetchSsbApiCallResult.");
@@ -379,8 +389,6 @@ public class DataFetcherService {
 
             if (filters != null)
                 sac.metadataApiCall(filters, true);
-            else
-                sac.metadataApiCall(tableCode);
 
             return sac;
         } catch (IOException ie) {
@@ -409,6 +417,11 @@ public class DataFetcherService {
      */
     private String apiCall(String endpoint, String payload) {
         URL url = null;
+
+        if (Calendar.getInstance().getTime().getTime() - lastTokenFetch.getTime() >= 10600000 || lastTokenFetch == null) {
+            fetchToken();
+        }
+
         try {
             url = new URL("http://localhost:8080/api/v1/" + endpoint);
 
@@ -416,6 +429,7 @@ public class DataFetcherService {
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json; utf-8");
             connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("Authorization", apiToken);
             connection.setDoOutput(true);
 
             OutputStream os = connection.getOutputStream();
@@ -442,11 +456,57 @@ public class DataFetcherService {
             return responseString;
         } catch (MalformedURLException e) {
             e.printStackTrace();
+            return "[ERROR]: MalformedURLException in apiCall.";
         } catch (IOException e) {
             e.printStackTrace();
+            return addRedColorToString("[ERROR]: IOException in apiCall.");
         }
+    }
 
-        return null;
+    private void fetchToken() {
+        System.out.println("[fetchToken] Fetching token!");
+        URL url = null;
+        try {
+            lastTokenFetch = Calendar.getInstance().getTime();
 
+            url = new URL("http://localhost:8080/public/users/login?email=" + username + "&password=" + password);
+
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json; utf-8");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setDoOutput(true);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(),
+                    StandardCharsets.UTF_8));
+
+            String responseString;
+            StringBuilder response = new StringBuilder();
+
+            while(true) {
+                String responseLine;
+                if ((responseLine = br.readLine()) == null) {
+                    responseString = response.toString();
+                    break;
+                }
+
+                response.append(responseLine.trim());
+            }
+            connection.disconnect();
+
+            System.out.println("Check out this responseString!: " + responseString);
+            apiToken = responseString;
+            //return responseString;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            System.out.println("[ERROR]: MalformedURLException in apiCall.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(addRedColorToString("[ERROR]: IOException in apiCall."));
+        }
+    }
+
+    private String addRedColorToString(String message) {
+        return "\u001B[31m" + message + "\u001B[0m";
     }
 }
