@@ -53,7 +53,7 @@ public class DatabaseService {
         intRegex = "\\[int\\]";
         numericRegex = "\\[numeric\\] \\(\\d+\\,\\d+\\)";
 
-        createColumnRegexWithParenthesis = "\\((?:\\[(\\w|\\s|[æøåÆØÅ])+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
+        createColumnRegexWithParenthesis = "\\((?:\\[(\\w|\\s|[æøåÆØÅ]|[\\-\\/])+\\] (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+\\)";
         createColumnRegexWithoutParenthesis = "(?:(\\[\\w+\\]) (" + varcharRegex + "|" + intRegex + "|" + numericRegex + ")(\\, )?)+";
 
         dropTruncateCommandRegex = "((drop|truncate) table)";
