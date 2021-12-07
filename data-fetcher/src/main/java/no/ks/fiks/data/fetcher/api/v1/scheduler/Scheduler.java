@@ -182,7 +182,6 @@ public class Scheduler {
         @Override
         public void run() {
             System.out.println("[" + tableCode + "] STARTING. " + ssbApiCall.getMetadata().getTitle() + ". Size: " + ssbApiCall.getQuerySize());
-            System.out.println("[" + tableCode + "] json: " + json);
             // Both createTable and insertData uses the SsbApiCall class which means two extra queries
             monitor.increaseQueryCounter(querySize + 2);
             System.out.println("[" + tableCode + "] createTable: " + dfs.createTable(json));
