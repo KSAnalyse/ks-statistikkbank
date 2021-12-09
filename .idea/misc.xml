@@ -7,13 +7,6 @@
         <option value="$PROJECT_DIR$/pom.xml" />
       </list>
     </option>
-    <option name="ignoredFiles">
-      <set>
-        <option value="$PROJECT_DIR$/innhenting-ssb-data/pom.xml" />
-        <option value="$PROJECT_DIR$/innhenting-ssb-klass/pom.xml" />
-        <option value="$PROJECT_DIR$/scheduler/pom.xml" />
-      </set>
-    </option>
   </component>
   <component name="NullableNotNullManager">
     <option name="myDefaultNullable" value="org.jetbrains.annotations.Nullable" />
