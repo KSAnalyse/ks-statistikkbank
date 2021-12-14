@@ -3,13 +3,11 @@ package no.ks.fiks.data.fetcher.api.v1.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import no.ks.fiks.Service.InsertTableService;
 import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadata;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadataVariables;
-
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -19,6 +17,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,15 +26,22 @@ import java.util.regex.Pattern;
 @Service
 public class DataFetcherService {
 
+    private final String username;
+    private final String password;
     private String apiToken;
-    private Date lastTokenFetch;
-    private String username;
-    private String password;
+    private LocalDateTime lastTokenFetch;
 
     public DataFetcherService() {
         //TODO: Get the fields from a config file
-        username = "username";
-        password = "password";
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream("src/main/resources/login.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        username = properties.getProperty("username");
+        password = properties.getProperty("password");
         fetchToken();
     }
 
@@ -46,7 +53,6 @@ public class DataFetcherService {
      *
      * @param jsonPayload the json containing all the information needed.
      * @return the result from the database-service API
-     *
      * @see #fetchSsbApiCallData(String, int, Map)
      * @see #createColumnDeclarations(SsbMetadata)
      * @see #apiCall(String, String)
@@ -63,7 +69,7 @@ public class DataFetcherService {
         if (schemaName == null)
             return "[ERROR] The json doesn't have the schemaName field.";
 
-        sac = fetchSsbApiCallData(tableCode,1, getFilters(jsonPayload));
+        sac = fetchSsbApiCallData(tableCode, 1, getFilters(jsonPayload));
         if (sac == null)
             return "[ERROR] Something went wrong while fetching the SsbApiCall data.";
 
@@ -102,9 +108,9 @@ public class DataFetcherService {
         if (dataResult == null)
             return "[ERROR] Failed while fetching and structuring data.";
 
-        String result ="";
+        String result = "";
         tableName = String.format("%s.[%s]", schemaName, tableCode);
-        for(String s: fetchSsbApiCallResult(sac)) {
+        for (String s : fetchSsbApiCallResult(sac)) {
             result = apiCall("insert-data", createInsertJson(tableName, s));
 
             if (!result.equals("OK"))
@@ -164,6 +170,7 @@ public class DataFetcherService {
     /**
      * Gets the value of the tableCode field in the json string provided.
      * If tableCode aren't specified then returns null.
+     *
      * @param createString the json string
      * @return the value of tableCode as text or null if it doesn't exist
      */
@@ -188,6 +195,7 @@ public class DataFetcherService {
     /**
      * Gets the value of the tableCode field in the json string provided.
      * If tableCode aren't specified then returns null.
+     *
      * @param createString the json string
      * @return the value of tableCode as text or null if it doesn't exist
      */
@@ -212,6 +220,7 @@ public class DataFetcherService {
     /**
      * Gets the value of the numberOfYears field in the json string provided.
      * If numberOfYears aren't specified then returns 5.
+     *
      * @param createString the json string
      * @return the numberOfYears value as int or 5 if it is non-existing
      */
@@ -248,7 +257,7 @@ public class DataFetcherService {
             if (actualObj.get("filters") == null)
                 return null;
 
-            for (JsonNode filterObject: actualObj.get("filters")) {
+            for (JsonNode filterObject : actualObj.get("filters")) {
                 List<String> values = new LinkedList<>();
                 for (JsonNode filterValue : filterObject.get("values")) {
                     values.add(filterValue.asText());
@@ -266,14 +275,14 @@ public class DataFetcherService {
 
     /**
      * Creates the column declarations needed for the create query based on the metadata provided.
-     *
+     * <p>
      * For each metadata code in the metadata fetched creates a pair of columns on the form:
      * [[metadata name]navn] [varchar] (largestValue)
      * [[metadata name]kode] [varchar] (largestValue)
      * e.g
      * [Regionkode] [varchar] (5)
      * [Regionnavn] [varchar] (24)
-     *
+     * <p>
      * If the metadata column is "Tid" then it uses the metadata code instead.
      *
      * @param metadata the object containing all the metadata information
@@ -309,9 +318,8 @@ public class DataFetcherService {
     /**
      * Creates a json string with the fields tableName and data.
      *
-     * @param tableName the name of the table in the db
+     * @param tableName   the name of the table in the db
      * @param queryResult the json-stat2 containing the data
-     *
      * @return returns the new json string if successful, else an error message
      */
     private String createInsertJson(String tableName, String queryResult) {
@@ -369,9 +377,9 @@ public class DataFetcherService {
      * Fetches metadata from a specific table from SSB using the SsbApiCall class.
      * If there's specified any filters applies these with the removeAllBut parameter set to true.
      *
-     * @param tableCode the table code to the table at SSB
+     * @param tableCode     the table code to the table at SSB
      * @param numberOfYears the number of years to fetch data from
-     * @param filters filters to be applied when fetching data
+     * @param filters       filters to be applied when fetching data
      * @return the object containing all the information fetched from SSB
      */
     private SsbApiCall fetchSsbApiCallData(String tableCode, int numberOfYears, Map<String, List<String>> filters) {
@@ -406,7 +414,7 @@ public class DataFetcherService {
      * Connects to the endpoint given and posts the payload.
      *
      * @param endpoint the endpoint to where to do the post request
-     * @param payload the payload to be posted
+     * @param payload  the payload to be posted
      * @return the response from the API
      */
     private String apiCall(String endpoint, String payload) {
@@ -436,7 +444,7 @@ public class DataFetcherService {
             String responseString;
             StringBuilder response = new StringBuilder();
 
-            while(true) {
+            while (true) {
                 String responseLine;
                 if ((responseLine = br.readLine()) == null) {
                     responseString = response.toString();
@@ -459,16 +467,20 @@ public class DataFetcherService {
 
     private void fetchToken() {
         System.out.println("[fetchToken] Fetching token!");
-        URL url = null;
+
         try {
-            lastTokenFetch = Calendar.getInstance().getTime();
-
-            url = new URL("http://localhost:8080/public/users/login?email=" + username + "&password=" + password);
-
+            long expirationSeconds = 10800;
+            if (lastTokenFetch.isAfter(LocalDateTime.now().minus(expirationSeconds, ChronoUnit.SECONDS)))
+                return;
+            lastTokenFetch = LocalDateTime.now();
+            URL url;
+            url = new URL("http://localhost:8080/public/users/login"/*?email=" + username + "&password=" + password*/);
+            String encoding = Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json; utf-8");
             connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("Authorization", "Basic" + encoding);
             connection.setDoOutput(true);
 
             BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(),
@@ -477,7 +489,7 @@ public class DataFetcherService {
             String responseString;
             StringBuilder response = new StringBuilder();
 
-            while(true) {
+            while (true) {
                 String responseLine;
                 if ((responseLine = br.readLine()) == null) {
                     responseString = response.toString();

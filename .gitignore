@@ -2,3 +2,6 @@
 /database-service/target/
 *.class
 database-service/src/test/resources/application.properties
+data-fetcher/src/main/resources/login.properties
+*.properties
+*.csv
