@@ -32,16 +32,9 @@ public class DataFetcherService {
     private String password;
 
     public DataFetcherService() {
-
-        Properties login = new Properties();
-        try {
-            FileReader in = new FileReader("login.properties");
-            login.load(in);
-            this.username = login.getProperty("username");
-            this.password = login.getProperty("password");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        //TODO: Get the fields from a config file
+        username = "username";
+        password = "password";
     }
 
     /**
@@ -418,9 +411,9 @@ public class DataFetcherService {
     private String apiCall(String endpoint, String payload) {
         URL url = null;
 
-        if (Calendar.getInstance().getTime().getTime() - lastTokenFetch.getTime() >= 10600000 || lastTokenFetch == null) {
+        /*if (Calendar.getInstance().getTime().getTime() - lastTokenFetch.getTime() >= 10600000 || lastTokenFetch == null) {
             fetchToken();
-        }
+        }*/
 
         try {
             url = new URL("http://localhost:8080/api/v1/" + endpoint);
@@ -468,6 +461,9 @@ public class DataFetcherService {
         URL url = null;
         try {
             lastTokenFetch = Calendar.getInstance().getTime();
+
+            //TODO: Add a check on the token is expired or not
+            fetchToken();
 
             url = new URL("http://localhost:8080/public/users/login?email=" + username + "&password=" + password);
 
