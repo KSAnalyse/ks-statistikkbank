@@ -40,7 +40,7 @@ final class JWTTokenService implements Clock, TokenService {
                     @Value("${jwt.issuer:ks-statistikkbank}") final String issuer,
                     @Value("${jwt.expiration-sec:10600}") final int expirationSec,
                     @Value("${jwt.clock-skew-sec:300}") final int clockSkewSec,
-                    @Value("${jwt.secret:secret}") final String secret) {
+                    @Value("${jwt.secret:ks-er-best}") final String secret) {
         super();
         this.dates = requireNonNull(dates);
         this.issuer = requireNonNull(issuer);
