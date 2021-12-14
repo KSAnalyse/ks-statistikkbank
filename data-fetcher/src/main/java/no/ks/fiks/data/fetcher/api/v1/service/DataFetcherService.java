@@ -42,7 +42,6 @@ public class DataFetcherService {
 
         username = properties.getProperty("username");
         password = properties.getProperty("password");
-        fetchToken();
     }
 
     /**
@@ -418,14 +417,19 @@ public class DataFetcherService {
      * @return the response from the API
      */
     private String apiCall(String endpoint, String payload) {
-        URL url = null;
+
+
+        long expirationSeconds = 10800;
+        if (lastTokenFetch == null || lastTokenFetch.isBefore(LocalDateTime.now().minus(expirationSeconds, ChronoUnit.SECONDS)))
+            fetchToken();
+
 
         /*if (Calendar.getInstance().getTime().getTime() - lastTokenFetch.getTime() >= 10600000 || lastTokenFetch == null) {
             fetchToken();
         }*/
 
         try {
-            url = new URL("http://localhost:8080/api/v1/" + endpoint);
+            URL url = new URL("http://localhost:8080/api/v1/" + endpoint);
 
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
@@ -469,9 +473,7 @@ public class DataFetcherService {
         System.out.println("[fetchToken] Fetching token!");
 
         try {
-            long expirationSeconds = 10800;
-            if (lastTokenFetch.isAfter(LocalDateTime.now().minus(expirationSeconds, ChronoUnit.SECONDS)))
-                return;
+
             lastTokenFetch = LocalDateTime.now();
             URL url;
             url = new URL("http://localhost:8080/public/users/login"/*?email=" + username + "&password=" + password*/);
