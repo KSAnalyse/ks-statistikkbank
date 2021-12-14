@@ -12,6 +12,8 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="database-connection" target="15" />
+      <module name="dbservice-oauth2-authorization" target="15" />
       <module name="innhenting-ssb-data" target="15" />
       <module name="innhenting-ssb-klass" target="15" />
       <module name="ks-statistikkbank-auth" target="16" />
