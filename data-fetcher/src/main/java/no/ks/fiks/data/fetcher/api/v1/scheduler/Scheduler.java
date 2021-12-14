@@ -145,8 +145,7 @@ public class Scheduler {
                         resetQueryCounter();
                     }
 
-                    taskExecutor.execute(new SsbApiCallTask(dfs, ssbApiCall, getFirstJsonInQueue(), jsonObject.get("tableCode").asText(),
-                            ssbApiCall.getQuerySize(), System.nanoTime(), this));
+                    taskExecutor.execute(new SsbApiCallTask(dfs, ssbApiCall, getFirstJsonInQueue(), jsonObject.get("tableCode").asText()));
                     threadQueries.remove(0);
                 } catch (InterruptedException ie) {
                     System.out.println("OH NO!");
@@ -160,21 +159,16 @@ public class Scheduler {
 
     private static class SsbApiCallTask implements Runnable {
 
-        private final ThreadManager monitor;
         private final SsbApiCall ssbApiCall;
         private final String tableCode;
-        private long startTime;
         private DataFetcherService dfs;
         private final String json;
 
-        public SsbApiCallTask(DataFetcherService dfs, SsbApiCall ssbApiCall, String json, String tableCode,
-                              int querySize, long startTime, ThreadManager monitor) {
+        public SsbApiCallTask(DataFetcherService dfs, SsbApiCall ssbApiCall, String json, String tableCode) {
             this.dfs = dfs;
             this.ssbApiCall = ssbApiCall;
             this.json = json;
             this.tableCode = tableCode;
-            this.monitor = monitor;
-            this.startTime = startTime;
         }
 
         @Override
