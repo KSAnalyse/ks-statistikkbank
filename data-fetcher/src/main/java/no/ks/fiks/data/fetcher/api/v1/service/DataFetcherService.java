@@ -35,6 +35,7 @@ public class DataFetcherService {
         //TODO: Get the fields from a config file
         username = "username";
         password = "password";
+        fetchToken();
     }
 
     /**
@@ -461,9 +462,6 @@ public class DataFetcherService {
         URL url = null;
         try {
             lastTokenFetch = Calendar.getInstance().getTime();
-
-            //TODO: Add a check on the token is expired or not
-            fetchToken();
 
             url = new URL("http://localhost:8080/public/users/login?email=" + username + "&password=" + password);
 

@@ -38,7 +38,6 @@ public class Scheduler {
         //30 reqs per 60s
         ObjectMapper om = new ObjectMapper();
         ThreadManager manager = new ThreadManager(taskExecutor);
-        taskExecutor.execute(manager);
         String json;
 
         for (TableFilterAndGroups s : tableFilterAndGroups) {
@@ -76,6 +75,7 @@ public class Scheduler {
                 System.out.println("[runApiCall] Added " + s.getTabellnummer() + " to queue.");
             }
         }
+        taskExecutor.execute(manager);
 
         //TODO: Remove this
         while (true) {
@@ -128,19 +128,19 @@ public class Scheduler {
                         TimeUnit.SECONDS.sleep(10);
                     }
 
-                    if (getQueryCounter() >= 30 || getQueryCounter() + 2 >= 30) {
+                    if (getQueryCounter() >= 30 || getQueryCounter() + 1 >= 30) {
+                        System.out.println("[ThreadManager] Sleeping for 60s 1");
                         TimeUnit.SECONDS.sleep(60);
                         resetQueryCounter();
                     }
 
-                    increaseQueryCounter(1);
                     JsonNode jsonObject = mapper.readTree(getFirstJsonInQueue());
                     SsbApiCall ssbApiCall = new SsbApiCall(jsonObject.get("tableCode").asText(), 5, "131",
                             "104", "214", "231", "127");
-                    increaseQueryCounter(ssbApiCall.getQuerySize() + 2);
+                    increaseQueryCounter(ssbApiCall.getQuerySize() + 3);
 
                     if (getQueryCounter() >= 30) {
-                        System.out.println("[ThreadManager] Sleeping for 60s");
+                        System.out.println("[ThreadManager] Sleeping for 60s 2");
                         TimeUnit.SECONDS.sleep(60);
                         resetQueryCounter();
                     }
