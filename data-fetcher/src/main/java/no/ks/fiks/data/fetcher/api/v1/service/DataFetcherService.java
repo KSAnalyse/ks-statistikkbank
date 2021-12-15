@@ -35,7 +35,7 @@ public class DataFetcherService {
         //TODO: Get the fields from a config file
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream("src/main/resources/login.properties"));
+            properties.load(new FileInputStream("data-fetcher/src/main/resources/login.properties"));
         } catch (IOException e) {
             e.printStackTrace();
         }
