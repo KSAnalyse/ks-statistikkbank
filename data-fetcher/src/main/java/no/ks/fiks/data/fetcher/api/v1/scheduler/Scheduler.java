@@ -10,6 +10,8 @@ import no.ks.fiks.data.fetcher.tableinfo.TableFilterAndGroups;
 import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,14 +19,14 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
+@EnableScheduling
 public class Scheduler {
 
-    private TaskExecutor taskExecutor;
-    private List<TableFilterAndGroups> tableFilterAndGroups;
+    private final TaskExecutor taskExecutor;
+    private final List<TableFilterAndGroups> tableFilterAndGroups;
 
-    public Scheduler(TaskExecutor taskExecutor) {
-        this.taskExecutor = taskExecutor;
-
+    public Scheduler() {
+        this.taskExecutor = new SchedulerConfig().taskExecutorConfiguration();
         CsvReader csvReader = new CsvReader();
         try {
             csvReader.readFromCsv();
@@ -34,6 +36,7 @@ public class Scheduler {
         tableFilterAndGroups = csvReader.getTablesAndFilters();
     }
 
+    @Scheduled(cron = "0 0 9 * * MON-FRI", zone = "Europe/Paris")
     public void runApiCall() {
         //30 reqs per 60s
         ObjectMapper om = new ObjectMapper();
@@ -78,16 +81,16 @@ public class Scheduler {
         taskExecutor.execute(manager);
 
         //TODO: Remove this
-        while (true) {
+        /*while (true) {
 
-        }
+        }*/
     }
 
     private static class ThreadManager implements Runnable {
 
-        private List<String> threadQueries;
-        private TaskExecutor taskExecutor;
-        private DataFetcherService dfs;
+        private final List<String> threadQueries;
+        private final TaskExecutor taskExecutor;
+        private final DataFetcherService dfs;
         private int queryCounter;
 
         public ThreadManager(TaskExecutor taskExecutor) {
@@ -121,12 +124,12 @@ public class Scheduler {
         public void run() {
             System.out.println("[ThreadManager] Starting up the thread manager.");
             ObjectMapper mapper = new ObjectMapper();
-            while (true) {
+            while (!threadQueries.isEmpty()) {
                 try {
-                    while (threadQueries.size() == 0) {
+                    /*while (threadQueries.size() == 0) {
                         System.out.println("[ThreadManager] Waiting for more threads.");
                         TimeUnit.SECONDS.sleep(10);
-                    }
+                    }*/
 
                     if (getQueryCounter() >= 30 || getQueryCounter() + 1 >= 30) {
                         System.out.println("[ThreadManager] Sleeping for 60s 1");
@@ -161,7 +164,7 @@ public class Scheduler {
 
         private final SsbApiCall ssbApiCall;
         private final String tableCode;
-        private DataFetcherService dfs;
+        private final DataFetcherService dfs;
         private final String json;
 
         public SsbApiCallTask(DataFetcherService dfs, SsbApiCall ssbApiCall, String json, String tableCode) {
