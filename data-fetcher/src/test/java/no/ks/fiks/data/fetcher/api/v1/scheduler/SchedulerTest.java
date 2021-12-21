@@ -1,13 +1,8 @@
 package no.ks.fiks.data.fetcher.api.v1.scheduler;
 
 
-import no.ks.fiks.data.fetcher.csvreader.CsvReader;
-import no.ks.fiks.data.fetcher.tableinfo.TableFilterAndGroups;
 import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import java.io.FileNotFoundException;
-import java.util.List;
 
 class SchedulerTest {
 
