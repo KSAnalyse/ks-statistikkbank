@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import no.ks.fiks.Service.InsertTableService;
+import no.ks.fiks.data.fetcher.api.v1.scheduler.Scheduler;
+import no.ks.fiks.data.fetcher.api.v1.scheduler.ThreadQuery;
 import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadata;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadataVariables;
@@ -26,6 +28,7 @@ import java.util.regex.Pattern;
 @Service
 public class DataFetcherService {
 
+    private final Scheduler scheduler;
     private final String username;
     private final String password;
     private String apiToken;
@@ -40,6 +43,7 @@ public class DataFetcherService {
             e.printStackTrace();
         }
 
+        scheduler = new Scheduler();
         username = properties.getProperty("username");
         password = properties.getProperty("password");
     }
@@ -68,6 +72,12 @@ public class DataFetcherService {
         if (schemaName == null)
             return "[ERROR] The json doesn't have the schemaName field.";
 
+        //sac = fetchSsbApiCallData(tableCode, 1, getFilters(jsonPayload));
+
+        tableName = String.format("%s.[%s]", schemaName, tableCode);
+        scheduler.addThreadToQueue(new ThreadQuery(tableCode, tableName, "create", getFilters(jsonPayload)));
+
+        /*
         sac = fetchSsbApiCallData(tableCode, 1, getFilters(jsonPayload));
         if (sac == null)
             return "[ERROR] Something went wrong while fetching the SsbApiCall data.";
@@ -77,6 +87,8 @@ public class DataFetcherService {
         query = String.format("create table %s (%s, [Verdi] [numeric] (18,1))", tableName, columnDeclarations);
 
         return apiCall("create-table", query);
+        */
+        return "TODO";
     }
 
     /**
