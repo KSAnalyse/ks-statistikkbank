@@ -190,18 +190,21 @@ public class Scheduler {
                             TimeUnit.SECONDS.sleep(60);
                             resetQueryCounter();
                         }
+
+                        increaseQueryCounter(1);
                         ssbApiCall = new SsbApiCall(threadQuery.getTableCode(), 5, "131",
                                 "104", "214", "231", "127");
-
                         threadQuery.setSsbApiCall(ssbApiCall);
 
-                        if (getQueryCounter() >= 30 || getQueryCounter() + ssbApiCall.getQuerySize() >= 30) {
-                            System.out.println("[ThreadManager] Sleeping for 60s 2");
-                            TimeUnit.SECONDS.sleep(60);
-                            resetQueryCounter();
+                        if (threadQuery.getQueryType().equals("insert")) {
+                            if (getQueryCounter() >= 30 || getQueryCounter() + ssbApiCall.getQuerySize() >= 30) {
+                                System.out.println("[ThreadManager] Sleeping for 60s 2");
+                                TimeUnit.SECONDS.sleep(60);
+                                resetQueryCounter();
+                            }
+
+                            increaseQueryCounter(ssbApiCall.getQuerySize());
                         }
-                        
-                        increaseQueryCounter(ssbApiCall.getQuerySize());
                     }
 
                     /*
