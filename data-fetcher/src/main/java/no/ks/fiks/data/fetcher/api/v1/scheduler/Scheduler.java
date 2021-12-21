@@ -1,5 +1,7 @@
 package no.ks.fiks.data.fetcher.api.v1.scheduler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import no.ks.fiks.data.fetcher.api.v1.service.DataFetcherService;
@@ -94,18 +96,18 @@ public class Scheduler {
                 String tableName = String.format("%s.[%s]", s.getKildeId().toLowerCase(), s.getTabellnummer());
                 manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(), tableName, "create", null));
                 manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(), tableName, "truncate", null));
-                //manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(), tableName, "insert", null));
+                manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(), tableName, "insert", null));
                 System.out.println("[runApiCall] Added " + s.getTabellnummer() + " to queue.");
             }
         }
         taskExecutor.execute(manager);
 
         //TODO: Remove this
-        /*
+
         while (true) {
 
         }
-         */
+
     }
 
     synchronized public void addThreadToQueue(ThreadQuery threadQuery) {
@@ -302,7 +304,7 @@ public class Scheduler {
                         System.out.printf("[%s] Finished querying API%n", threadQuery.getTableCode());
                         for (String result : queryResults) {
                             System.out.printf("[%s] Inserting batch of data%n", threadQuery.getTableCode());
-                            System.out.printf("[%s] %s%n", threadQuery.getTableCode(), apiCall("insert-data", result));
+                            System.out.printf("[%s] %s%n", threadQuery.getTableCode(), apiCall("insert-data", createInsertJson(threadQuery.getTableName(), result)));
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -418,6 +420,30 @@ public class Scheduler {
                 e.printStackTrace();
                 return "[ERROR]: IOException in apiCall.";
                 //return addRedColorToString("[ERROR]: IOException in apiCall.");
+            }
+        }
+
+        /**
+         * Creates a json string with the fields tableName and data.
+         *
+         * @param tableName   the name of the table in the db
+         * @param queryResult the json-stat2 containing the data
+         * @return returns the new json string if successful, else an error message
+         */
+        private String createInsertJson(String tableName, String queryResult) {
+            ObjectMapper om = new ObjectMapper();
+
+            try {
+                ObjectNode on = om.createObjectNode();
+                JsonNode resultData = om.readTree(queryResult);
+
+                on.put("tableName", tableName);
+                on.set("data", resultData);
+
+                return om.writeValueAsString(on);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return "[ERROR] Issues occurred while processing the json.";
             }
         }
     }
