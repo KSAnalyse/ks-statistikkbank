@@ -1,9 +1,18 @@
 package no.ks.fiks.data.fetcher.api.v1.service;
 
+import no.ks.fiks.data.fetcher.csvreader.CsvReader;
+import no.ks.fiks.data.fetcher.tableinfo.TabellFilter;
+import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
+import no.ks.fiks.ssbAPI.metadataApi.SsbMetadata;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.io.FileNotFoundException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -11,10 +20,21 @@ import static org.junit.jupiter.api.Assertions.*;
 class DataFetcherServiceTest {
 
     private DataFetcherService dfs;
+    private SsbMetadata metadata;
+    private List<TabellFilter> tabellFilter;
 
     @BeforeEach
     void setUp() {
         dfs = new DataFetcherService();
+        metadata = new SsbApiCall("05939", 5, "131",
+                "104", "214", "231", "127").getMetadata();
+        CsvReader csvReader = new CsvReader();
+        try {
+            csvReader.readFromCsv();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        tabellFilter = csvReader.getTablesAndFilters();
     }
 
     @AfterEach
@@ -159,5 +179,17 @@ class DataFetcherServiceTest {
                 "{\"tableCode\":\"11211\",\"schemaName\":\"ssb\",\"numberOfYears\":\"1\"," +
                         "\"filters\":[{\"code\":\"KOKkommuneregion0000\", \"values\":[\"0301\"]}]}"
         ));
+    }
+
+    @Test
+    void testCreateColumnDeclarations() {
+        Map<String, List<String>> filters = new LinkedHashMap<>();
+        for (TabellFilter table : tabellFilter) {
+            if (table.getTabellnummer().equals("05939"))
+                filters = table.getLagTabellFilter();
+        }
+
+        System.out.println(filters);
+        System.out.println(dfs.createColumnDeclarations(metadata, filters));
     }
 }
