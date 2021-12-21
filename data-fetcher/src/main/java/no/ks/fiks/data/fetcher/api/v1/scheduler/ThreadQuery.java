@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 public class ThreadQuery {
-    private String tableName, tableCode;
-    private String queryType;
-    private Map<String, List<String>> filters;
+    private final String tableName, tableCode;
+    private final String queryType;
+    private final Map<String, List<String>> filters;
     private SsbApiCall ssbApiCall;
 
     public ThreadQuery(String tableCode, String tableName, String queryType, Map<String, List<String>> filters) {
