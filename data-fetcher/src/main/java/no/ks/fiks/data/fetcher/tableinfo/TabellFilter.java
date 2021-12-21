@@ -2,18 +2,15 @@ package no.ks.fiks.data.fetcher.tableinfo;
 
 import java.util.*;
 
-public class TableFilterAndGroups {
+public class TabellFilter {
     private final String kildeId;
     private final String tabellnummer;
-    private final String gruppenavn;
     private final Map<String, List<String>> lagTabellFilter;
     private final Map<String, List<String>> hentDataFilter;
 
-    public TableFilterAndGroups(String kildeId, String tabellnummer, String gruppenavn,
-                                String lagTabellFilterString, String hentDataFilterString) {
+    public TabellFilter(String kildeId, String tabellnummer, String lagTabellFilterString, String hentDataFilterString) {
         this.kildeId = kildeId;
         this.tabellnummer = tabellnummer;
-        this.gruppenavn = gruppenavn;
         this.lagTabellFilter = splitStringIntoMap(lagTabellFilterString);
         this.hentDataFilter = splitStringIntoMap(hentDataFilterString);
 
@@ -51,10 +48,6 @@ public class TableFilterAndGroups {
 
     public String getTabellnummer() {
         return tabellnummer;
-    }
-
-    public String getGruppenavn() {
-        return gruppenavn;
     }
 
     public Map<String, List<String>> getLagTabellFilter() {
