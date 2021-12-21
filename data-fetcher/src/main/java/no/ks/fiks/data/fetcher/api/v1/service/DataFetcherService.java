@@ -68,7 +68,7 @@ public class DataFetcherService {
      */
     public String createTable(String jsonPayload) {
         String tableName, query, columnDeclarations, tableCode, schemaName;
-        SsbApiCall sac;
+        //SsbApiCall sac;
 
         tableCode = getTableCode(jsonPayload);
         if (tableCode == null)
@@ -80,8 +80,13 @@ public class DataFetcherService {
 
         //sac = fetchSsbApiCallData(tableCode, 1, getFilters(jsonPayload));
 
+
+        TabellFilter tableObject = tabellFilter.stream().filter(table -> table.getTabellnummer().equals(tableCode)).findFirst().orElse(null);
+
         tableName = String.format("%s.[%s]", schemaName, tableCode);
-        scheduler.addThreadToQueue(new ThreadQuery(tableCode, tableName, "create", getFilters(jsonPayload)));
+
+        assert tableObject != null;
+        scheduler.addThreadToQueue(new ThreadQuery(tableCode, tableName, "create", tableObject.getLagTabellFilter()));
 
         /*
         sac = fetchSsbApiCallData(tableCode, 1, getFilters(jsonPayload));
@@ -117,13 +122,16 @@ public class DataFetcherService {
             return "[ERROR] The json doesn't have the schemaName field.";
 
         TabellFilter tableObject = tabellFilter.stream().filter(table -> table.getTabellnummer().equals(tableCode)).findAny().orElse(null);
+        tableName = String.format("%s.[%s]", schemaName, tableCode);
 
+        assert tableObject != null;
+        scheduler.addThreadToQueue(new ThreadQuery(tableCode, tableName, "insert", tableObject.getHentDataFilter()));
+        /*
         sac = fetchSsbApiCallData(tableCode, getNumberOfYears(jsonPayload), tableObject.getHentDataFilter());
         if (sac == null)
             return "[ERROR] Failed while fetching SsbApiCall data.";
 
         String result = "";
-        tableName = String.format("%s.[%s]", schemaName, tableCode);
         for (String s : fetchSsbApiCallResult(sac)) {
             result = apiCall("insert-data", createInsertJson(tableName, s));
 
@@ -131,6 +139,8 @@ public class DataFetcherService {
                 return result;
         }
         return result;
+        */
+        return "TODO";
     }
 
     /**
