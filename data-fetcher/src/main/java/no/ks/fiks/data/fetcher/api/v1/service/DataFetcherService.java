@@ -43,7 +43,7 @@ public class DataFetcherService {
         Properties properties = new Properties();
         try {
             csvReader.readFromCsv();
-            properties.load(new FileInputStream("src/test/resources/login.properties"));
+            properties.load(new FileInputStream("src/main/resources/login.properties"));
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -16,7 +16,7 @@ public class CsvReader {
     }
 
     public void readFromCsv() throws FileNotFoundException {
-        try (Scanner scanner = new Scanner(new File("src/test/resources/Tabellfilter.csv"));) {
+        try (Scanner scanner = new Scanner(new File("src/main/resources/Tabellfilter.csv"))) {
             scanner.nextLine();
             while (scanner.hasNextLine()) {
                 String[] splitter = scanner.nextLine().split(";", 5);
