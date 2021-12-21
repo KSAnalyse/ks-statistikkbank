@@ -94,16 +94,18 @@ public class Scheduler {
                 String tableName = String.format("%s.[%s]", s.getKildeId().toLowerCase(), s.getTabellnummer());
                 manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(), tableName, "create", null));
                 manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(), tableName, "truncate", null));
-                manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(), tableName, "insert", null));
+                //manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(), tableName, "insert", null));
                 System.out.println("[runApiCall] Added " + s.getTabellnummer() + " to queue.");
             }
         }
         taskExecutor.execute(manager);
 
         //TODO: Remove this
-        /*while (true) {
+        /*
+        while (true) {
 
-        }*/
+        }
+         */
     }
 
     synchronized public void addThreadToQueue(ThreadQuery threadQuery) {
@@ -115,7 +117,7 @@ public class Scheduler {
         //private final List<String> threadQueries;
         private final List<ThreadQuery> threadQueries;
         private final TaskExecutor taskExecutor;
-        private final DataFetcherService dfs;
+        //private final DataFetcherService dfs;
         private final String username;
         private final String password;
         private int queryCounter;
@@ -124,14 +126,14 @@ public class Scheduler {
 
         public ThreadManager(TaskExecutor taskExecutor) {
             this.taskExecutor = taskExecutor;
-            dfs = new DataFetcherService();
+            //dfs = new DataFetcherService();
             //threadQueries = new ArrayList<>();
             threadQueries = new ArrayList<>();
             queryCounter = 0;
 
             Properties properties = new Properties();
             try {
-                properties.load(new FileInputStream("data-fetcher/src/main/resources/login.properties"));
+                properties.load(new FileInputStream("src/main/resources/login.properties"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -257,7 +259,6 @@ public class Scheduler {
                 }
                 connection.disconnect();
 
-                System.out.println("Check out this responseString!: " + responseString);
                 apiToken = responseString;
                 //return responseString;
             } catch (MalformedURLException e) {
@@ -273,25 +274,8 @@ public class Scheduler {
     private static class SsbApiCallTask implements Runnable {
 
         private final ThreadManager manager;
-        /*
-        private final SsbApiCall ssbApiCall;
-        private final String tableCode;
-        private final DataFetcherService dfs;
-        private final String json;
-        */
-        //private LocalDateTime lastTokenFetch;
         private ThreadQuery threadQuery;
         private String apiToken;
-
-        /*
-        public SsbApiCallTask(DataFetcherService dfs, SsbApiCall ssbApiCall, String json, String tableCode, ThreadManager manager) {
-            this.dfs = dfs;
-            this.ssbApiCall = ssbApiCall;
-            this.json = json;
-            this.tableCode = tableCode;
-            this.manager = manager;
-        }
-         */
 
         public SsbApiCallTask(ThreadQuery threadQuery, ThreadManager manager) {
             this.threadQuery = threadQuery;
@@ -304,33 +288,30 @@ public class Scheduler {
 
             switch (threadQuery.getQueryType()) {
                 case "create":
-                    System.out.println("create");
+                    System.out.println("[" + threadQuery.getTableCode() + "] Creating table.");
                     String columnDeclarations = createColumnDeclarations(threadQuery.getSsbApiCall().getMetadata());
                     String query = String.format("create table %s (%s, [Verdi] [numeric] (18,1))",
                             threadQuery.getTableName(), columnDeclarations);
-                    apiCall("create-table", query);
+                    System.out.println("[" + threadQuery.getTableCode() + "] Create: " + apiCall("create-table", query));
                     break;
                 case "insert":
                     System.out.println("insert");
                     break;
                 case "drop":
-                    apiCall("drop-table", String.format("drop table %s", threadQuery.getTableName()));
+                    System.out.println("[" + threadQuery.getTableCode() + "] Dropping table.");
+                    System.out.println("[" + threadQuery.getTableCode() + "] Drop: " + apiCall("drop-table",
+                            String.format("drop table %s", threadQuery.getTableName())));
                     break;
                 case "truncate":
-                    apiCall("truncate-table", String.format("truncate table %s", threadQuery.getTableName()));
-                    System.out.println("drop/truncate");
+                    System.out.println("[" + threadQuery.getTableCode() + "] Truncating table.");
+                    System.out.println(threadQuery.getTableName());
+                    System.out.println("[" + threadQuery.getTableCode() + "] Truncate: " + apiCall("truncate-table",
+                            String.format("truncate table %s", threadQuery.getTableName())));
                     break;
                 default:
                     System.out.println("default");
                     break;
             }
-            /*
-            System.out.println("[" + tableCode + "] STARTING. " + ssbApiCall.getMetadata().getTitle() + ". Size: " + ssbApiCall.getQuerySize());
-            System.out.println("[" + tableCode + "] createTable: " + dfs.createTable(json));
-            System.out.println("[" + tableCode + "] truncateTable: " + dfs.truncateTable(json));
-            System.out.println("[" + tableCode + "] insertData: " + dfs.insertData(json));
-            System.out.println("[" + tableCode + "] DONE. " + ssbApiCall.getMetadata().getTitle());
-             */
         }
 
         /**
