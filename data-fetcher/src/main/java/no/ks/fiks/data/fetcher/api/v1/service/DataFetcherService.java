@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import no.ks.fiks.Service.InsertTableService;
 import no.ks.fiks.data.fetcher.api.v1.scheduler.Scheduler;
 import no.ks.fiks.data.fetcher.api.v1.scheduler.ThreadQuery;
+import no.ks.fiks.data.fetcher.csvreader.CsvReader;
+import no.ks.fiks.data.fetcher.tableinfo.TabellFilter;
 import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadata;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadataVariables;
@@ -33,17 +35,21 @@ public class DataFetcherService {
     private final String password;
     private String apiToken;
     private LocalDateTime lastTokenFetch;
+    private final List<TabellFilter> tabellFilter;
 
     public DataFetcherService() {
         //TODO: Get the fields from a config file
+        CsvReader csvReader = new CsvReader();
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream("data-fetcher/src/main/resources/login.properties"));
+            csvReader.readFromCsv();
+            properties.load(new FileInputStream("src/test/resources/login.properties"));
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         scheduler = new Scheduler();
+        tabellFilter = csvReader.getTablesAndFilters();
         username = properties.getProperty("username");
         password = properties.getProperty("password");
     }
@@ -57,7 +63,7 @@ public class DataFetcherService {
      * @param jsonPayload the json containing all the information needed.
      * @return the result from the database-service API
      * @see #fetchSsbApiCallData(String, int, Map)
-     * @see #createColumnDeclarations(SsbMetadata)
+     * @see #createColumnDeclarations(SsbMetadata, Map)
      * @see #apiCall(String, String)
      */
     public String createTable(String jsonPayload) {
@@ -81,9 +87,9 @@ public class DataFetcherService {
         sac = fetchSsbApiCallData(tableCode, 1, getFilters(jsonPayload));
         if (sac == null)
             return "[ERROR] Something went wrong while fetching the SsbApiCall data.";
-
+        Map<String, List<String>> filter = new LinkedHashMap<>();
         tableName = String.format("%s.[%s]", schemaName, tableCode);
-        columnDeclarations = createColumnDeclarations(sac.getMetadata());
+        columnDeclarations = createColumnDeclarations(sac.getMetadata(), filter);
         query = String.format("create table %s (%s, [Verdi] [numeric] (18,1))", tableName, columnDeclarations);
 
         return apiCall("create-table", query);
@@ -100,7 +106,6 @@ public class DataFetcherService {
      */
     public String insertData(String jsonPayload) {
         String tableCode, tableName, schemaName;
-        List<Map<String[], BigDecimal>> dataResult;
         SsbApiCall sac;
 
         tableCode = getTableCode(jsonPayload);
@@ -111,13 +116,11 @@ public class DataFetcherService {
         if (schemaName == null)
             return "[ERROR] The json doesn't have the schemaName field.";
 
-        sac = fetchSsbApiCallData(tableCode, getNumberOfYears(jsonPayload), getFilters(jsonPayload));
+        TabellFilter tableObject = tabellFilter.stream().filter(table -> table.getTabellnummer().equals(tableCode)).findAny().orElse(null);
+
+        sac = fetchSsbApiCallData(tableCode, getNumberOfYears(jsonPayload), tableObject.getHentDataFilter());
         if (sac == null)
             return "[ERROR] Failed while fetching SsbApiCall data.";
-
-        dataResult = fetchAndStructureSsbApiCallResult(sac);
-        if (dataResult == null)
-            return "[ERROR] Failed while fetching and structuring data.";
 
         String result = "";
         tableName = String.format("%s.[%s]", schemaName, tableCode);
@@ -275,7 +278,6 @@ public class DataFetcherService {
                 }
                 filterMap.put(filterObject.get("code").asText(), values);
             }
-
             return filterMap;
 
         } catch (Exception e) {
@@ -299,11 +301,23 @@ public class DataFetcherService {
      * @param metadata the object containing all the metadata information
      * @return the column declarations on the mentioned form
      */
-    private String createColumnDeclarations(SsbMetadata metadata) {
+    public String createColumnDeclarations(SsbMetadata metadata, Map<String, List<String>> lagDataFilter) {
         StringBuilder columnDeclarations = new StringBuilder();
-
+        List<String> skipDimension = new LinkedList<>();
         Iterator<SsbMetadataVariables> iterator = metadata.getVariables().iterator();
-
+        if (!lagDataFilter.isEmpty()) {
+            for (String key : lagDataFilter.keySet()) {
+                if (key.equalsIgnoreCase("add")) {
+                    columnDeclarations.append(String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(lagDataFilter.get(key).get(0)),
+                            lagDataFilter.get(key).get(1)));
+                    columnDeclarations.append(String.format("[%snavn] [varchar] (%s), ", StringUtils.capitalize(lagDataFilter.get(key).get(0)),
+                            lagDataFilter.get(key).get(1)));
+                } else if (!lagDataFilter.get(key).isEmpty() && lagDataFilter.get(key).get(0).equalsIgnoreCase("none")) {
+                    skipDimension.add(key);
+                    System.out.println(skipDimension);
+                }
+            }
+        }
         while (iterator.hasNext()) {
             SsbMetadataVariables smv = iterator.next();
 
@@ -313,10 +327,12 @@ public class DataFetcherService {
                 columnDeclarations.append(String.format("[%snavn] [varchar] (%s)", StringUtils.capitalize(smv.getCode()),
                         smv.getLargestValueText()));
             } else {
-                columnDeclarations.append(String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(smv.getText()),
-                        smv.getLargestValue()));
-                columnDeclarations.append(String.format("[%snavn] [varchar] (%s)", StringUtils.capitalize(smv.getText()),
-                        smv.getLargestValueText()));
+                if (!skipDimension.contains(smv.getCode())) {
+                    columnDeclarations.append(String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(smv.getText()),
+                            smv.getLargestValue()));
+                    columnDeclarations.append(String.format("[%snavn] [varchar] (%s)", StringUtils.capitalize(smv.getText()),
+                            smv.getLargestValueText()));
+                }
             }
 
             if (iterator.hasNext()) {
