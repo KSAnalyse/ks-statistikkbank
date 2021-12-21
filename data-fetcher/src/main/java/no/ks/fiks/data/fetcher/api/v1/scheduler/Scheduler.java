@@ -304,7 +304,6 @@ public class Scheduler {
                     break;
                 case "truncate":
                     System.out.println("[" + threadQuery.getTableCode() + "] Truncating table.");
-                    System.out.println(threadQuery.getTableName());
                     System.out.println("[" + threadQuery.getTableCode() + "] Truncate: " + apiCall("truncate-table",
                             String.format("truncate table %s", threadQuery.getTableName())));
                     break;
