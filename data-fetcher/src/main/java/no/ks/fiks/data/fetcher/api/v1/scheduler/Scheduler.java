@@ -1,12 +1,10 @@
 package no.ks.fiks.data.fetcher.api.v1.scheduler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import no.ks.fiks.data.fetcher.api.v1.service.DataFetcherService;
 import no.ks.fiks.data.fetcher.csvreader.CsvReader;
-import no.ks.fiks.data.fetcher.tableinfo.TableFilterAndGroups;
+import no.ks.fiks.data.fetcher.tableinfo.TabellFilter;
 import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadata;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadataVariables;
@@ -25,8 +23,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Configuration
 @EnableScheduling
@@ -34,7 +30,7 @@ public class Scheduler {
 
     private final TaskExecutor taskExecutor;
     private final ThreadManager manager;
-    private final List<TableFilterAndGroups> tableFilterAndGroups;
+    private final List<TabellFilter> tabellFilters;
 
     public Scheduler() {
         //manager = new ThreadManager(new SchedulerConfig().taskExecutorConfiguration());
@@ -46,7 +42,7 @@ public class Scheduler {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        tableFilterAndGroups = csvReader.getTablesAndFilters();
+        tabellFilters = csvReader.getTablesAndFilters();
     }
 
     @Scheduled(cron = "0 0 9 * * MON-FRI", zone = "Europe/Paris")
@@ -55,8 +51,9 @@ public class Scheduler {
         ObjectMapper om = new ObjectMapper();
         //ThreadManager manager = new ThreadManager(taskExecutor);
         String json;
+        List<String> filters = new ArrayList<>();
 
-        for (TableFilterAndGroups s : tableFilterAndGroups) {
+        for (TabellFilter s : tabellFilters) {
             ObjectNode jsonObject = om.createObjectNode();
             ObjectNode filterObject = om.createObjectNode();
 
@@ -78,19 +75,26 @@ public class Scheduler {
                 }
                 System.out.println("Add create filters");
             }
-
-            if (s.getHentDataFilter() != null)
-                System.out.println("Add fetch filters");
-
-
              */
+
+            /*if (s.getHentDataFilter() != null) {
+                System.out.println("Add fetch filters");
+                for (String filterCode : s.getHentDataFilter().keySet()) {
+                    String jsonFilter = "\"filters\":[{\"code\":\"%s\", \"values\":[%l]}]";
+                    String filterList = s.getHentDataFilter().get(filterCode).stream().collect(Collectors.joining("\",\"", "\"", "\""));
+                    jsonFilter = jsonFilter.replaceAll("%s", filterCode);
+                    jsonFilter = jsonFilter.replaceAll("%l", filterList);
+                    System.out.println(jsonFilter);
+                }
+            }*/
+
 
             if (!s.getTabellnummer().equals("11211") && !s.getTabellnummer().equals("12247")) {
                 System.out.println("[runApiCall] Adding " + s.getTabellnummer() + " to queue.");
                 String tableName = String.format("%s.[%s]", s.getKildeId().toLowerCase(), s.getTabellnummer());
-                manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(),tableName, "create", null));
-                manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(),tableName, "truncate", null));
-                manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(),tableName, "insert", null));
+                manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(), tableName, "create", null));
+                manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(), tableName, "truncate", null));
+                manager.addThreadToQueue(new ThreadQuery(s.getTabellnummer(), tableName, "insert", null));
                 System.out.println("[runApiCall] Added " + s.getTabellnummer() + " to queue.");
             }
         }
@@ -112,11 +116,11 @@ public class Scheduler {
         private final List<ThreadQuery> threadQueries;
         private final TaskExecutor taskExecutor;
         private final DataFetcherService dfs;
+        private final String username;
+        private final String password;
         private int queryCounter;
         private LocalDateTime lastTokenFetch;
         private String apiToken;
-        private final String username;
-        private final String password;
 
         public ThreadManager(TaskExecutor taskExecutor) {
             this.taskExecutor = taskExecutor;
@@ -265,6 +269,7 @@ public class Scheduler {
 
     private static class SsbApiCallTask implements Runnable {
 
+        private final ThreadManager manager;
         /*
         private final SsbApiCall ssbApiCall;
         private final String tableCode;
@@ -274,7 +279,6 @@ public class Scheduler {
         //private LocalDateTime lastTokenFetch;
         private ThreadQuery threadQuery;
         private String apiToken;
-        private final ThreadManager manager;
 
         /*
         public SsbApiCallTask(DataFetcherService dfs, SsbApiCall ssbApiCall, String json, String tableCode, ThreadManager manager) {
