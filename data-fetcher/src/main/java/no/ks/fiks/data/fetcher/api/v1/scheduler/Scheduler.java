@@ -192,11 +192,17 @@ public class Scheduler {
                         }
                         ssbApiCall = new SsbApiCall(threadQuery.getTableCode(), 5, "131",
                                 "104", "214", "231", "127");
+
+                        threadQuery.setSsbApiCall(ssbApiCall);
+
+                        if (getQueryCounter() >= 30 || getQueryCounter() + ssbApiCall.getQuerySize() >= 30) {
+                            System.out.println("[ThreadManager] Sleeping for 60s 2");
+                            TimeUnit.SECONDS.sleep(60);
+                            resetQueryCounter();
+                        }
+                        
+                        increaseQueryCounter(ssbApiCall.getQuerySize());
                     }
-
-
-                    threadQuery.setSsbApiCall(ssbApiCall);
-                    increaseQueryCounter(ssbApiCall.getQuerySize());
 
                     /*
                     JsonNode jsonObject = mapper.readTree(getFirstJsonInQueue());
@@ -205,12 +211,6 @@ public class Scheduler {
                     increaseQueryCounter(ssbApiCall.getQuerySize() + 3);
 
                      */
-
-                    if (getQueryCounter() >= 30) {
-                        System.out.println("[ThreadManager] Sleeping for 60s 2");
-                        TimeUnit.SECONDS.sleep(60);
-                        resetQueryCounter();
-                    }
 
                     //taskExecutor.execute(new SsbApiCallTask(dfs, ssbApiCall, getFirstJsonInQueue(), jsonObject.get("tableCode").asText(), this));
                     taskExecutor.execute(new SsbApiCallTask(threadQuery, this));
@@ -311,7 +311,10 @@ public class Scheduler {
                     System.out.println("insert");
                     break;
                 case "drop":
+                    apiCall("drop-table", String.format("drop table %s", threadQuery.getTableName()));
+                    break;
                 case "truncate":
+                    apiCall("truncate-table", String.format("truncate table %s", threadQuery.getTableName()));
                     System.out.println("drop/truncate");
                     break;
                 default:
