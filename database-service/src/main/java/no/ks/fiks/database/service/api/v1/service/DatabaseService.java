@@ -306,7 +306,7 @@ public class DatabaseService {
             if (jn.get("data") == null)
                 return "[Error] Missing field data.";
 
-            List<String> data = Arrays.asList(om.writeValueAsString(jn.get("data")));
+            List<String> data = List.of(om.writeValueAsString(jn.get("data")));
 
             return insertData(its.structureJsonStatTable(data), tableName);
         } catch (JsonProcessingException e) {
@@ -315,6 +315,8 @@ public class DatabaseService {
         } catch (IOException ie) {
             ie.printStackTrace();
             return "[ERROR] IOException when converting insert json.";
+        } finally {
+            its = null;
         }
     }
 
@@ -375,7 +377,7 @@ public class DatabaseService {
         //TODO
         valuesParam += "?";
 
-        System.out.println("batchUpdate -> Starting");
+        System.out.printf("batchUpdate for table %s: -> Starting%n", tableName);
 
         timer.start();
         jdbc.batchUpdate(
@@ -402,7 +404,7 @@ public class DatabaseService {
         );
         timer.stop();
 
-        System.out.println("batchUpdate -> Total time in seconds: " + timer.getTotalTimeSeconds());
+        System.out.println("batchUpdate for table: " + tableName + " -> Total time in seconds: " + timer.getTotalTimeSeconds());
 
         return "OK";
     }
