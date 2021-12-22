@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import no.ks.fiks.data.fetcher.api.v1.service.DataFetcherService;
 import no.ks.fiks.data.fetcher.csvreader.CsvReader;
 import no.ks.fiks.data.fetcher.tableinfo.TabellFilter;
 import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
@@ -30,9 +29,9 @@ import java.util.concurrent.TimeUnit;
 @EnableScheduling
 public class Scheduler {
 
+    private static List<TabellFilter> tabellFilters = null;
     private final TaskExecutor taskExecutor;
     private final ThreadManager manager;
-    private static List<TabellFilter> tabellFilters = null;
 
     public Scheduler() {
         //manager = new ThreadManager(new SchedulerConfig().taskExecutorConfiguration());
@@ -47,7 +46,7 @@ public class Scheduler {
         tabellFilters = csvReader.getTablesAndFilters();
     }
 
-    @Scheduled(cron = "0 33 11 * * MON-FRI", zone = "Europe/Paris")
+    @Scheduled(cron = "0 18 12 * * MON-FRI", zone = "Europe/Paris")
     public void runApiCall() {
         //30 reqs per 60s
         ObjectMapper om = new ObjectMapper();
@@ -185,7 +184,7 @@ public class Scheduler {
 
                     ThreadQuery threadQuery = getFirstThreadQueryInQueue();
 
-                    SsbApiCall ssbApiCall;
+                    SsbApiCall ssbApiCall = null;
                     // Only create and insert needs to fetch data from SSB to work
                     if (threadQuery.getQueryType().equals("create") || threadQuery.getQueryType().equals("insert")) {
                         // If by fetching SsbApiCall data makes the manager reach the limit, wait 1min
@@ -196,13 +195,19 @@ public class Scheduler {
                         }
                         increaseQueryCounter(1);
 
-                        TabellFilter tableObject = tabellFilters.stream().filter(table -> table.getTabellnummer().equals(threadQuery.getTableCode())).findAny().orElse(null);
-                        if (tableObject != null && !tableObject.getHentDataFilter().isEmpty())
-                            ssbApiCall = new SsbApiCall(threadQuery.getTableCode(), 5, tableObject.getHentDataFilter(),"131",
-                                "104", "214", "231", "127");
-                        else
-                            ssbApiCall = new SsbApiCall(threadQuery.getTableCode(), 5, null,"131",
+                        Map<String, List<String>> tableFilter = Objects.requireNonNull(tabellFilters.stream()
+                                .filter(table -> table.getTabellnummer().equals(threadQuery.getTableCode()))
+                                .findFirst()
+                                .orElse(null))
+                                .getHentDataFilter();
+
+                        System.out.println(tableFilter);
+                        if (!tableFilter.isEmpty() && !threadQuery.getTableCode().equals("05939"))
+                            ssbApiCall = new SsbApiCall(threadQuery.getTableCode(), 5, tableFilter, "131",
                                     "104", "214", "231", "127");
+                        else
+                            ssbApiCall = new SsbApiCall(threadQuery.getTableCode(), 5, null, "131",
+                                "104", "214", "231", "127");
 
                         threadQuery.setSsbApiCall(ssbApiCall);
 
