@@ -234,8 +234,7 @@ public class Scheduler {
             try {
 
                 lastTokenFetch = LocalDateTime.now();
-                URL url;
-                url = new URL("http://localhost:8080/public/users/login"/*?email=" + username + "&password=" + password*/);
+                URL url = new URL("http://localhost:8080/public/users/login");
                 String encoding = Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
@@ -291,24 +290,11 @@ public class Scheduler {
             switch (threadQuery.getQueryType()) {
                 case "create" -> {
                     System.out.println("[" + threadQuery.getTableCode() + "] Creating table.");
-                    String columnDeclarations = createColumnDeclarations(threadQuery.getSsbApiCall().getMetadata());
-                    String query = String.format("create table %s (%s, [Verdi] [numeric] (18,1))",
-                            threadQuery.getTableName(), columnDeclarations);
-                    System.out.println("[" + threadQuery.getTableCode() + "] Create: " + apiCall("create-table", query));
+                    createTable();
                 }
                 case "insert" -> {
                     System.out.println("[" + threadQuery.getTableCode() + "] Inserting into table.");
-                    try {
-                        System.out.printf("[%s] Querying API...%n", threadQuery.getTableCode());
-                        List <String> queryResults = threadQuery.getSsbApiCall().tableApiCall();
-                        System.out.printf("[%s] Finished querying API%n", threadQuery.getTableCode());
-                        for (String result : queryResults) {
-                            System.out.printf("[%s] Inserting batch of data%n", threadQuery.getTableCode());
-                            System.out.printf("[%s] %s%n", threadQuery.getTableCode(), apiCall("insert-data", createInsertJson(threadQuery.getTableName(), result)));
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    insertData();
                 }
                 case "drop" -> {
                     System.out.println("[" + threadQuery.getTableCode() + "] Dropping table.");
@@ -320,7 +306,34 @@ public class Scheduler {
                     System.out.println("[" + threadQuery.getTableCode() + "] Truncate: " + apiCall("truncate-table",
                             String.format("truncate table %s", threadQuery.getTableName())));
                 }
+                case "run-new" -> {
+                    System.out.printf("[%s] Creating table and inserting data.", threadQuery.getTableCode());
+                    createTable();
+                    insertData();
+                }
                 default -> System.out.println("default");
+            }
+        }
+
+        private void createTable() {
+
+            String columnDeclarations = createColumnDeclarations(threadQuery.getSsbApiCall().getMetadata());
+            String query = String.format("create table %s (%s, [Verdi] [numeric] (18,1))",
+                    threadQuery.getTableName(), columnDeclarations);
+            System.out.println("[" + threadQuery.getTableCode() + "] Create: " + apiCall("create-table", query));
+        }
+
+        private void insertData() {
+            try {
+                System.out.printf("[%s] Querying API...%n", threadQuery.getTableCode());
+                List<String> queryResults = threadQuery.getSsbApiCall().tableApiCall();
+                System.out.printf("[%s] Finished querying API%n", threadQuery.getTableCode());
+                for (String result : queryResults) {
+                    System.out.printf("[%s] Inserting batch of data%n", threadQuery.getTableCode());
+                    System.out.printf("[%s] %s%n", threadQuery.getTableCode(), apiCall("insert-data", createInsertJson(threadQuery.getTableName(), result)));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
