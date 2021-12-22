@@ -26,7 +26,7 @@ class DataFetcherServiceTest {
     @BeforeEach
     void setUp() {
         dfs = new DataFetcherService();
-        metadata = new SsbApiCall("05939", 5, "131",
+        metadata = new SsbApiCall("05939", 5, null, "131",
                 "104", "214", "231", "127").getMetadata();
         CsvReader csvReader = new CsvReader();
         try {
