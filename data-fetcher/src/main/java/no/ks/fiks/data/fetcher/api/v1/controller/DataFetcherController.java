@@ -12,8 +12,8 @@ public class DataFetcherController {
     private final DataFetcherService dfs;
 
     @Autowired
-    public DataFetcherController() {
-        dfs = new DataFetcherService();
+    public DataFetcherController(DataFetcherService dfs) {
+        this.dfs = dfs;
     }
 
     @GetMapping("/status")

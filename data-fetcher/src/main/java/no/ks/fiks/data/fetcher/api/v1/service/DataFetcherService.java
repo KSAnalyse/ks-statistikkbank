@@ -13,6 +13,7 @@ import no.ks.fiks.data.fetcher.tableinfo.TabellFilter;
 import no.ks.fiks.ssbAPI.APIService.SsbApiCall;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadata;
 import no.ks.fiks.ssbAPI.metadataApi.SsbMetadataVariables;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -38,7 +39,9 @@ public class DataFetcherService {
     private LocalDateTime lastTokenFetch;
     private final List<TabellFilter> tabellFilter;
 
-    public DataFetcherService() {
+    @Autowired
+    public DataFetcherService(Scheduler scheduler) {
+        this.scheduler = scheduler;
         //TODO: Get the fields from a config file
         CsvReader csvReader = new CsvReader();
         Properties properties = new Properties();
@@ -48,8 +51,7 @@ public class DataFetcherService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        scheduler = new Scheduler();
+        //scheduler = new Scheduler();
         tabellFilter = csvReader.getTablesAndFilters();
         username = properties.getProperty("username");
         password = properties.getProperty("password");

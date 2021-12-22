@@ -13,7 +13,7 @@ class DataFetcherControllerTest {
 
     @BeforeEach
     void setUp() {
-        dfc = new DataFetcherController();
+        //dfc = new DataFetcherController();
     }
 
     @AfterEach
