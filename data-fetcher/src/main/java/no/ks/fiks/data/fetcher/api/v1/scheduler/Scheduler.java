@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.StringUtils;
 
+import javax.swing.text.html.Option;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -44,9 +45,10 @@ public class Scheduler {
             e.printStackTrace();
         }
         tabellFilters = csvReader.getTablesAndFilters();
+        taskExecutor.execute(this.manager);
     }
 
-    @Scheduled(cron = "0 18 12 * * MON-FRI", zone = "Europe/Paris")
+    @Scheduled(cron = "0 27 13 * * MON-FRI", zone = "Europe/Paris")
     public void runApiCall() {
         //30 reqs per 60s
         ObjectMapper om = new ObjectMapper();
@@ -195,14 +197,14 @@ public class Scheduler {
                         }
                         increaseQueryCounter(1);
 
-                        Map<String, List<String>> tableFilter = Objects.requireNonNull(tabellFilters.stream()
+                        Map<String, List<String>> tableFilter = tabellFilters.stream()
                                 .filter(table -> table.getTabellnummer().equals(threadQuery.getTableCode()))
                                 .findFirst()
-                                .orElse(null))
+                                .orElse(null)
                                 .getHentDataFilter();
-
+                        Optional<Map<String, List<String>>> checkForNull = Optional.ofNullable(tableFilter);
                         System.out.println(tableFilter);
-                        if (!tableFilter.isEmpty() && !threadQuery.getTableCode().equals("05939"))
+                        if (checkForNull.isPresent())
                             ssbApiCall = new SsbApiCall(threadQuery.getTableCode(), 5, tableFilter, "131",
                                     "104", "214", "231", "127");
                         else
@@ -364,27 +366,51 @@ public class Scheduler {
          * @return the column declarations on the mentioned form
          */
         private String createColumnDeclarations(SsbMetadata metadata) {
+            Optional<Map<String, List<String>>> lagDataFilter = Optional.ofNullable(tabellFilters.stream()
+                    .filter(table -> table.getTabellnummer().equals(threadQuery.getTableCode()))
+                    .findFirst()
+                    .orElse(null)
+                    .getLagTabellFilter());
+
+
             StringBuilder columnDeclarations = new StringBuilder();
+            List<String> skipDimension = new LinkedList<>();
 
             Iterator<SsbMetadataVariables> iterator = metadata.getVariables().iterator();
 
+            if (lagDataFilter.isPresent()) {
+                for (String key : lagDataFilter.get().keySet()) {
+                    if (key.equalsIgnoreCase("add")) {
+                        columnDeclarations.append(String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(lagDataFilter.get().get(key).get(0)),
+                                lagDataFilter.get().get(key).get(1)));
+                        columnDeclarations.append(String.format("[%snavn] [varchar] (%s), ", StringUtils.capitalize(lagDataFilter.get().get(key).get(0)),
+                                lagDataFilter.get().get(key).get(1)));
+                    } else if (!lagDataFilter.get().get(key).isEmpty() && lagDataFilter.get().get(key).get(0).equalsIgnoreCase("none")) {
+                        skipDimension.add(key);
+                        System.out.println(skipDimension);
+                    }
+                }
+            }
             while (iterator.hasNext()) {
                 SsbMetadataVariables smv = iterator.next();
+                if (!skipDimension.contains(smv.getCode())) {
+                    if (smv.getCode().equals("Tid")) {
+                        columnDeclarations.append(String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(smv.getCode()),
+                                smv.getLargestValue()));
+                        columnDeclarations.append(String.format("[%snavn] [varchar] (%s)", StringUtils.capitalize(smv.getCode()),
+                                smv.getLargestValueText()));
+                    } else {
 
-                if (smv.getCode().equals("Tid")) {
-                    columnDeclarations.append(String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(smv.getCode()),
-                            smv.getLargestValue()));
-                    columnDeclarations.append(String.format("[%snavn] [varchar] (%s)", StringUtils.capitalize(smv.getCode()),
-                            smv.getLargestValueText()));
-                } else {
-                    columnDeclarations.append(String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(smv.getText()),
-                            smv.getLargestValue()));
-                    columnDeclarations.append(String.format("[%snavn] [varchar] (%s)", StringUtils.capitalize(smv.getText()),
-                            smv.getLargestValueText()));
-                }
+                        columnDeclarations.append(String.format("[%skode] [varchar] (%s), ", StringUtils.capitalize(smv.getText()),
+                                smv.getLargestValue()));
+                        columnDeclarations.append(String.format("[%snavn] [varchar] (%s)", StringUtils.capitalize(smv.getText()),
+                                smv.getLargestValueText()));
 
-                if (iterator.hasNext()) {
-                    columnDeclarations.append(", ");
+                    }
+
+                    if (iterator.hasNext()) {
+                        columnDeclarations.append(", ");
+                    }
                 }
             }
             return columnDeclarations.toString();
