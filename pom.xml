@@ -58,9 +58,9 @@
         <dependency>
             <groupId>no.ks.fiks</groupId>
             <artifactId>ks-ssb-api-call</artifactId>
-            <version>1.0.4-SNAPSHOT</version>
+            <version>1.0.5-SNAPSHOT</version>
             <scope>system</scope>
-            <systemPath>${pom.basedir}/lib/ks-ssb-api-call-1.0.4-SNAPSHOT.jar</systemPath>
+            <systemPath>${pom.basedir}/lib/ks-ssb-api-call-1.0.5-SNAPSHOT.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

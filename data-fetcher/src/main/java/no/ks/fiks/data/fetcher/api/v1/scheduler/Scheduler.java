@@ -47,7 +47,7 @@ public class Scheduler {
         tabellFilters = csvReader.getTablesAndFilters();
     }
 
-    @Scheduled(cron = "0 30 11 * * MON-FRI", zone = "Europe/Paris")
+    @Scheduled(cron = "0 33 11 * * MON-FRI", zone = "Europe/Paris")
     public void runApiCall() {
         //30 reqs per 60s
         ObjectMapper om = new ObjectMapper();
@@ -330,7 +330,7 @@ public class Scheduler {
                 System.out.printf("[%s] Finished querying API%n", threadQuery.getTableCode());
                 for (String result : queryResults) {
                     System.out.printf("[%s] Inserting batch of data%n", threadQuery.getTableCode());
-                    System.out.printf("[%s] %s%n", threadQuery.getTableCode(), apiCall("insert-data", createInsertJson(threadQuery.getTableName(), result)));
+                    System.out.printf("[%s] Insert %s%n", threadQuery.getTableCode(), apiCall("insert-data", createInsertJson(threadQuery.getTableName(), result)));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
