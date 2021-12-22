@@ -153,7 +153,7 @@ public class DataFetcherService {
      * @see #apiCall(String, String)
      */
     public String dropTable(String jsonPayload) {
-        String schemaName, tableCode;
+        String schemaName, tableCode, tableName;
 
         tableCode = getTableCode(jsonPayload);
         if (tableCode == null)
@@ -163,8 +163,14 @@ public class DataFetcherService {
         if (schemaName == null)
             return "[ERROR] The json doesn't have the schemaName field.";
 
-        String dropQuery = String.format("drop table %s.[%s]", getSchemaName(jsonPayload), getTableCode(jsonPayload));
-        return apiCall("drop-table", dropQuery);
+        tableName = String.format("%s.[%s]", schemaName, tableCode);
+
+        //String dropQuery = String.format("drop table %s", tableName);
+
+        scheduler.addThreadToQueue(new ThreadQuery(tableCode, tableName, "drop", null));
+
+        return "TODO";
+        //return apiCall("drop-table", dropQuery);
     }
 
     /**
@@ -177,7 +183,7 @@ public class DataFetcherService {
      * @see #apiCall(String, String)
      */
     public String truncateTable(String jsonPayload) {
-        String schemaName, tableCode;
+        String schemaName, tableCode, tableName;
 
         tableCode = getTableCode(jsonPayload);
         if (tableCode == null)
@@ -187,8 +193,19 @@ public class DataFetcherService {
         if (schemaName == null)
             return "[ERROR] The json doesn't have the schemaName field.";
 
+        tableName = String.format("%s.[%s]", schemaName, tableCode);
+
+        //String dropQuery = String.format("drop table %s", tableName);
+
+        scheduler.addThreadToQueue(new ThreadQuery(tableCode, tableName, "truncate", null));
+
+        return "TODO";
+
+        /*
         String truncateQuery = String.format("truncate table %s.[%s]", schemaName, tableCode);
         return apiCall("truncate-table", truncateQuery);
+
+         */
     }
 
     /**
