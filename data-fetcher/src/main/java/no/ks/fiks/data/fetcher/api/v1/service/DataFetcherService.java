@@ -1,5 +1,6 @@
 package no.ks.fiks.data.fetcher.api.v1.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -148,7 +149,7 @@ public class DataFetcherService {
      * Creates a drop query using the tableCode field in the payload before doing a post call to the database-service
      * API.
      *
-     * @param jsonPayload
+     * @param jsonPayload he json containing all the information needed to drop data on the server.
      * @return a string with the result
      * @see #apiCall(String, String)
      */
@@ -441,7 +442,7 @@ public class DataFetcherService {
 
         try {
             sac = new SsbApiCall(tableCode, numberOfYears,
-                    "131", "104", "214", "231", "127");
+                    null, "131", "104", "214", "231", "127");
 
             if (filters != null)
                 sac.metadataApiCall(filters, true);
@@ -520,7 +521,7 @@ public class DataFetcherService {
             return "[ERROR]: MalformedURLException in apiCall.";
         } catch (IOException e) {
             e.printStackTrace();
-            return addRedColorToString("[ERROR]: IOException in apiCall.");
+            return addRedColorToString();
         }
     }
 
@@ -565,11 +566,11 @@ public class DataFetcherService {
             System.out.println("[ERROR]: MalformedURLException in apiCall.");
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println(addRedColorToString("[ERROR]: IOException in apiCall."));
+            System.out.println(addRedColorToString());
         }
     }
 
-    private String addRedColorToString(String message) {
-        return "\u001B[31m" + message + "\u001B[0m";
+    private String addRedColorToString() {
+        return "\u001B[31m" + "[ERROR]: IOException in apiCall." + "\u001B[0m";
     }
 }

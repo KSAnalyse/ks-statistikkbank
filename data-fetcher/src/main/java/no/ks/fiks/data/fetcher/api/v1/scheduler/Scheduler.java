@@ -32,7 +32,7 @@ public class Scheduler {
 
     private final TaskExecutor taskExecutor;
     private final ThreadManager manager;
-    private final List<TabellFilter> tabellFilters;
+    private static List<TabellFilter> tabellFilters = null;
 
     public Scheduler() {
         //manager = new ThreadManager(new SchedulerConfig().taskExecutorConfiguration());
@@ -185,7 +185,7 @@ public class Scheduler {
 
                     ThreadQuery threadQuery = getFirstThreadQueryInQueue();
 
-                    SsbApiCall ssbApiCall = null;
+                    SsbApiCall ssbApiCall;
                     // Only create and insert needs to fetch data from SSB to work
                     if (threadQuery.getQueryType().equals("create") || threadQuery.getQueryType().equals("insert")) {
                         // If by fetching SsbApiCall data makes the manager reach the limit, wait 1min
@@ -194,10 +194,16 @@ public class Scheduler {
                             TimeUnit.SECONDS.sleep(60);
                             resetQueryCounter();
                         }
-
                         increaseQueryCounter(1);
-                        ssbApiCall = new SsbApiCall(threadQuery.getTableCode(), 5, "131",
+
+                        TabellFilter tableObject = tabellFilters.stream().filter(table -> table.getTabellnummer().equals(threadQuery.getTableCode())).findAny().orElse(null);
+                        if (tableObject != null && !tableObject.getHentDataFilter().isEmpty())
+                            ssbApiCall = new SsbApiCall(threadQuery.getTableCode(), 5, tableObject.getHentDataFilter(),"131",
                                 "104", "214", "231", "127");
+                        else
+                            ssbApiCall = new SsbApiCall(threadQuery.getTableCode(), 5, null,"131",
+                                    "104", "214", "231", "127");
+
                         threadQuery.setSsbApiCall(ssbApiCall);
 
                         if (threadQuery.getQueryType().equals("insert")) {
@@ -275,7 +281,7 @@ public class Scheduler {
     private static class SsbApiCallTask implements Runnable {
 
         private final ThreadManager manager;
-        private ThreadQuery threadQuery;
+        private final ThreadQuery threadQuery;
         private String apiToken;
 
         public SsbApiCallTask(ThreadQuery threadQuery, ThreadManager manager) {
