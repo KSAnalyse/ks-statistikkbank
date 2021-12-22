@@ -47,7 +47,7 @@ public class Scheduler {
         tabellFilters = csvReader.getTablesAndFilters();
     }
 
-    @Scheduled(cron = "0 0 9 * * MON-FRI", zone = "Europe/Paris")
+    @Scheduled(cron = "0 30 11 * * MON-FRI", zone = "Europe/Paris")
     public void runApiCall() {
         //30 reqs per 60s
         ObjectMapper om = new ObjectMapper();
@@ -135,7 +135,7 @@ public class Scheduler {
 
             Properties properties = new Properties();
             try {
-                properties.load(new FileInputStream("src/main/resources/login.properties"));
+                properties.load(new FileInputStream("data-fetcher/src/main/resources/login.properties"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
