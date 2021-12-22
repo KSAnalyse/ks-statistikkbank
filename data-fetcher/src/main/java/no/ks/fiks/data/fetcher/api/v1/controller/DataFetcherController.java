@@ -1,6 +1,7 @@
 package no.ks.fiks.data.fetcher.api.v1.controller;
 
 import no.ks.fiks.data.fetcher.api.v1.service.DataFetcherService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -10,6 +11,7 @@ import javax.validation.Valid;
 public class DataFetcherController {
     private final DataFetcherService dfs;
 
+    @Autowired
     public DataFetcherController() {
         dfs = new DataFetcherService();
     }
