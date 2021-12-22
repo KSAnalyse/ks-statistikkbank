@@ -1,10 +1,7 @@
 package no.ks.fiks.data.fetcher.api.v1.controller;
 
 import no.ks.fiks.data.fetcher.api.v1.service.DataFetcherService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -15,6 +12,11 @@ public class DataFetcherController {
 
     public DataFetcherController() {
         dfs = new DataFetcherService();
+    }
+
+    @GetMapping("/status")
+    public String status() {
+        return "OK";
     }
 
     @PostMapping("/create-table")
