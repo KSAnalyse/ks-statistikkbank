@@ -447,7 +447,7 @@ public class DataFetcherService {
                     null, "131", "104", "214", "231", "127");
 
             if (filters != null)
-                sac.metadataApiCall(filters, true);
+                sac.metadataApiCall(filters);
 
             return sac;
         } catch (IOException ie) {
@@ -461,7 +461,6 @@ public class DataFetcherService {
             } else {
                 System.out.println("[ERROR] " + ie.getClass().getSimpleName() + " exception when creating table.");
             }
-
             return null;
         }
     }
