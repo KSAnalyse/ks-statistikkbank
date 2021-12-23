@@ -15,7 +15,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.StringUtils;
 
-import javax.swing.text.html.Option;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -48,7 +47,7 @@ public class Scheduler {
         taskExecutor.execute(this.manager);
     }
 
-    @Scheduled(cron = "0 27 13 * * MON-FRI", zone = "Europe/Paris")
+    @Scheduled(cron = "0 0 09 * * MON-FRI", zone = "Europe/Paris")
     public void runApiCall() {
         //30 reqs per 60s
         ObjectMapper om = new ObjectMapper();
@@ -209,7 +208,7 @@ public class Scheduler {
                                     "104", "214", "231", "127");
                         else
                             ssbApiCall = new SsbApiCall(threadQuery.getTableCode(), 5, null, "131",
-                                "104", "214", "231", "127");
+                                    "104", "214", "231", "127");
 
                         threadQuery.setSsbApiCall(ssbApiCall);
 
